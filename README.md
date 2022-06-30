@@ -16,13 +16,16 @@ The school data is published as open data by the irish government. I'm licensing
 I am not. The spatial data in this dataset should not be considered canonical.
 
 ## I found an error in the dataset
-Please open a Pull Request and I'll fix it.
+Please open an [issue](https://github.com/urschrei/irishsecondaryschools/issues) and I'll fix it.
 
 ## A school is missing
-Please open a pull request and I'll fix it.
+Please open an [issue](https://github.com/urschrei/irishsecondaryschools/issues) and I'll fix it.
 
 ## Why are you doing this?
 I needed the locations of all Irish secondary schools 'aided by the Department of Education'
 
+## I want to contribute some data
+Wonderful. Please open a [Pull Request](https://github.com/urschrei/irishsecondaryschools/pulls)
+
 ## Is there a canoncial unique ID per school?
-Yes: `Roll number`. This will be available for any school dataset published by the Department of Education.
+Yes: `Roll Number`. This will be available for any school dataset published by the Department of Education.
