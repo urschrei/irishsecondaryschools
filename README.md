@@ -33,5 +33,28 @@ I needed the locations of all Irish secondary schools 'aided by the Department o
 ## I want to contribute some data
 Wonderful. Please open a [Pull Request](https://github.com/urschrei/irishsecondaryschools/pulls)
 
-## Is there a canoncial unique ID per school?
+## Is there a canonical unique ID per school?
 Yes: `Roll Number`. This will be available for any school dataset published by the Department of Education.
+
+# Headers
+
+| Header      |
+| ----------- |
+| Roll Number      |
+| Official School Name   |
+| Principal Name   |
+| Address 1   |
+| Address 2   |
+| Address 3   |
+| Address 4   |
+| Eircode   |
+| Email   |
+| Phone   |
+| Fee-Charging School (Y/N)   |
+| Post Primary School Type   |
+| Irish Classification - Post Primary   |
+| Ethos/Religion   |
+| Count Unique Enrolments - <=30th Sept   |
+| total   |
+| latitude   |
+| longitude   |
