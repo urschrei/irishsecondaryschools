@@ -4,7 +4,7 @@ A `geojson` file containing data about Irish secondary schools.
 # FAQ
 
 ## How many schools are in this list?
-729
+728
 
 ## Where did you get the data
 https://www.gov.ie/en/collection/post-primary-schools/  
