@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pandas as pd
 
-# Columns that identify people or give contact details. The build never
-# writes them.
-CONTACT_COLUMNS = {"principal_name", "email", "phone"}
+# Columns that identify people or give personal contact details. The
+# build never writes them. School telephone numbers are not in this set.
+PERSONAL_COLUMNS = {"principal_name", "email"}
 
 # Map a normalised header (see _normalise_header) to a column name.
 # Headers that are not in this map are discarded.
@@ -352,5 +352,5 @@ def read_class_groups(path: Path) -> pd.DataFrame | None:
     return df.reset_index(drop=True)
 
 
-def drop_contact_columns(df: pd.DataFrame) -> pd.DataFrame:
-    return df.drop(columns=[c for c in df.columns if c in CONTACT_COLUMNS])
+def drop_personal_columns(df: pd.DataFrame) -> pd.DataFrame:
+    return df.drop(columns=[c for c in df.columns if c in PERSONAL_COLUMNS])

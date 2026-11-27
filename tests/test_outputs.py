@@ -51,8 +51,8 @@ def test_points_are_in_ireland(level):
     assert len(located) >= len(points) - 5
 
 
-def test_no_contact_columns(level):
-    assert not dept.CONTACT_COLUMNS & set(points_of(level).columns)
+def test_no_personal_columns(level):
+    assert not dept.PERSONAL_COLUMNS & set(points_of(level).columns)
 
 
 def test_one_academic_year(level):

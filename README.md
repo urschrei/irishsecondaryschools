@@ -18,7 +18,7 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 
 `roll_number` is the Department's identifier for a school. Use it to join the files to each other and to other Department datasets.
 
-The files do not contain the names, email addresses or telephone numbers of principals or schools.
+The files do not contain the names or email addresses of principals or schools.
 
 ## Columns in the school files
 
@@ -31,6 +31,7 @@ The files do not contain the names, email addresses or telephone numbers of prin
 | `name` | Both | Official school name. |
 | `address_1` to `address_4` | Both | Postal address. |
 | `eircode` | Both | Eircode. |
+| `phone` | Both | School telephone number, as given by the Department. Formats vary. |
 | `county`, `local_authority` | Both | County and local authority. |
 | `planning_area` | Both | Department school planning area. |
 | `special_school` | Primary | `true` for schools on the Department's list of special schools. |

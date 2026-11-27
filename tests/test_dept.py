@@ -77,11 +77,11 @@ def test_read_school_list(tmp_path):
     assert df["total"].tolist() == [100, 30]
 
 
-def test_drop_contact_columns(tmp_path):
+def test_drop_personal_columns(tmp_path):
     path = tmp_path / "list.xlsx"
     write_workbook(path, ROWS)
-    df = dept.drop_contact_columns(dept.read_school_list(path, 2025))
-    assert not dept.CONTACT_COLUMNS & set(df.columns)
+    df = dept.drop_personal_columns(dept.read_school_list(path, 2025))
+    assert not dept.PERSONAL_COLUMNS & set(df.columns)
 
 
 def test_read_school_list_rejects_duplicates(tmp_path):
@@ -168,13 +168,14 @@ def test_read_primary_list(tmp_path):
             }
         ],
     )
-    df = dept.drop_contact_columns(dept.read_primary_list(path, 2025))
+    df = dept.drop_personal_columns(dept.read_primary_list(path, 2025))
     assert df["roll_number"].tolist() == ["00359V", "17890H"]
     assert df["special_school"].tolist() == [False, True]
     assert df["total"].tolist() == [15, 7]
     assert df["gaeltacht"].tolist() == [False, False]
     assert df["school_type"].tolist() == ["Ordinary", "Ordinary"]
-    assert not dept.CONTACT_COLUMNS & set(df.columns)
+    assert df["phone"].tolist() == ["01000000", "01000000"]
+    assert not dept.PERSONAL_COLUMNS & set(df.columns)
 
     classes = dept.read_class_groups(path)
     assert classes is not None

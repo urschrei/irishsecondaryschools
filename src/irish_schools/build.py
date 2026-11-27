@@ -25,6 +25,7 @@ POINT_COLUMNS = [
     "address_3",
     "address_4",
     "eircode",
+    "phone",
     "county",
     "local_authority",
     "planning_area",
@@ -98,10 +99,10 @@ LEVELS = [POST_PRIMARY, PRIMARY]
 
 
 def read_year(level: Level, source: Source) -> pd.DataFrame:
-    """Read one year's list, with enrolment groups, without contact columns."""
+    """Read one year's list, with enrolment groups, without personal columns."""
     assert source.academic_year is not None
     df = level.read_list(source.path(), source.academic_year)
-    df = dept.drop_contact_columns(df)
+    df = dept.drop_personal_columns(df)
     groups = level.read_groups(source.path())
     if groups is not None:
         df = df.merge(groups, on="roll_number", how="left", validate="one_to_one")
