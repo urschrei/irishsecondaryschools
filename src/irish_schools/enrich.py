@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 # Irish Transverse Mercator. Distances in this CRS are in metres.
@@ -80,3 +81,30 @@ def add_deprivation(points: pd.DataFrame, deprivation: pd.DataFrame) -> pd.DataF
         missing = out.loc[out["hp_relative_index"].isna(), "ed_id"].unique()
         raise ValueError(f"no deprivation score for EDs {list(missing)}")
     return out.drop(columns="ed_key")
+
+
+ACCESS_RADIUS_M = 5_000
+
+
+def add_access(points: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Add straight-line access measures between post-primary schools.
+
+    nearest_school: roll number of the nearest other school.
+    nearest_school_km: distance to that school.
+    schools_within_5km: number of other schools within 5 km.
+    """
+    # Some schools share coordinates, so exclude each school by position
+    # in the matrix, not by geometry.
+    itm = points.geometry.to_crs(ITM)
+    xy = np.column_stack([itm.x, itm.y])
+    distance = np.hypot(*(xy[:, None, :] - xy[None, :, :]).transpose(2, 0, 1))
+    np.fill_diagonal(distance, np.inf)
+    nearest = distance.argmin(axis=1)
+
+    out = points.copy()
+    out["nearest_school"] = points["roll_number"].to_numpy()[nearest].astype(str)
+    out["nearest_school"] = out["nearest_school"].astype("string")
+    out["nearest_school_km"] = (distance.min(axis=1) / 1000).round(2)
+    out["schools_within_5km"] = (distance <= ACCESS_RADIUS_M).sum(axis=1)
+    out["schools_within_5km"] = out["schools_within_5km"].astype("Int64")
+    return out

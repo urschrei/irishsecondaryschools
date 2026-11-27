@@ -68,3 +68,9 @@ def test_points_match_latest_panel_year(points, panel):
 def test_every_school_has_area_and_deprivation(points):
     for column in ("small_area", "ed_id", "hp_relative_index", "hp_category"):
         assert points[column].notna().all(), column
+
+
+def test_nearest_school_is_another_listed_school(points):
+    assert (points["nearest_school"] != points["roll_number"]).all()
+    assert points["nearest_school"].isin(points["roll_number"]).all()
+    assert (points["nearest_school_km"] >= 0).all()

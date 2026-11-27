@@ -130,7 +130,10 @@ def write_points(gdf: gpd.GeoDataFrame, stem: str, directory: Path) -> list[Path
         directory / f"{stem}.geojson",
         directory / f"{stem}.csv",
     ]
-    gdf = gpd.GeoDataFrame(gdf.sort_values("roll_number").reset_index(drop=True))
+    columns = [c for c in gdf.columns if c != "geometry"] + ["geometry"]
+    gdf = gpd.GeoDataFrame(
+        gdf[columns].sort_values("roll_number").reset_index(drop=True)
+    )
     gdf.to_parquet(paths[0], index=False)
     gdf.to_file(paths[1], driver="GeoJSON", write_bbox="NO", coordinate_precision=6)
     gdf.drop(columns="geometry").to_csv(paths[2], index=False)
@@ -154,6 +157,7 @@ def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
     deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
     points = enrich.add_small_areas(points, small_areas)
     points = gpd.GeoDataFrame(enrich.add_deprivation(points, deprivation))
+    points = enrich.add_access(points)
     return [
         *write_points(points, "post_primary_schools", directory),
         *write_panel(panel, "post_primary_enrolment", directory),
