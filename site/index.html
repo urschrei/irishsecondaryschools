@@ -125,6 +125,20 @@
               <input id="size-mode" type="checkbox" class="size-4 accent-sign" />
               Size by enrolment
             </label>
+            <div class="border-t border-rule pt-2">
+              <label class="flex items-center gap-2">
+                <input id="areas-layer" type="checkbox" class="size-4 accent-sign" />
+                Show area deprivation
+              </label>
+              <div id="areas-key" hidden>
+                <ul id="areas-classes" class="mt-2 space-y-1"></ul>
+                <p class="mt-2 text-xs text-muted">
+                  Pobal HP Deprivation Index 2022, by Electoral Division. Click an area for its
+                  name and category.
+                </p>
+              </div>
+              <p id="areas-status" class="mt-1 text-xs" role="status"></p>
+            </div>
           </div>
         </details>
       </div>

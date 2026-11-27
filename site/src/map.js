@@ -85,12 +85,21 @@ export function showSchools(map, rolls) {
   map.setFilter(SCHOOLS_LAYER, rolls ? ['in', ['get', 'roll_number'], ['literal', rolls]] : null);
 }
 
+// Padding for fitBounds that keeps features clear of the open key on a
+// wide map.
+function fitPadding(map, base = 48) {
+  const legend = document.getElementById('legend');
+  const box = legend?.open ? legend.getBoundingClientRect() : null;
+  const wide = box && box.width < map.getContainer().clientWidth / 2;
+  return { top: base, right: base, bottom: base, left: wide ? box.width + base : base };
+}
+
 export function fitSchools(map, schools) {
   const located = schools.filter((school) => school.coordinates);
   if (!located.length) return;
   const bounds = new LngLatBounds(located[0].coordinates, located[0].coordinates);
   for (const school of located) bounds.extend(school.coordinates);
-  map.fitBounds(bounds, { padding: 48, maxZoom: 14 });
+  map.fitBounds(bounds, { padding: fitPadding(map), maxZoom: 14 });
 }
 
 const SELECTION_SOURCE = 'selection';
@@ -235,6 +244,45 @@ export function setNear(map, point, radiusKm) {
     const ring = features[0].geometry.coordinates[0];
     const bounds = new LngLatBounds(ring[0], ring[0]);
     for (const vertex of ring) bounds.extend(vertex);
-    map.fitBounds(bounds, { padding: 32 });
+    map.fitBounds(bounds, { padding: fitPadding(map) });
   }
+}
+
+const AREAS_SOURCE = 'ed-deprivation';
+const AREAS_LAYER = 'ed-deprivation';
+
+// Show or hide the Electoral Divisions coloured by deprivation category.
+// The boundaries load the first time that the layer is shown.
+export async function setAreasVisible(map, visible, loadAreas, colour) {
+  if (!map.getSource(AREAS_SOURCE)) {
+    if (!visible) return;
+    const data = await loadAreas();
+    if (map.getSource(AREAS_SOURCE)) return;
+    map.addSource(AREAS_SOURCE, { type: 'geojson', data });
+    // Put the areas under the basemap labels.
+    const firstLabel = map.getStyle().layers.find((layer) => layer.type === 'symbol')?.id;
+    map.addLayer(
+      {
+        id: AREAS_LAYER,
+        type: 'fill',
+        source: AREAS_SOURCE,
+        paint: { 'fill-color': colour, 'fill-opacity': 0.55, 'fill-outline-color': 'rgba(23, 33, 43, 0.25)' },
+      },
+      firstLabel,
+    );
+  }
+  map.setLayoutProperty(AREAS_LAYER, 'visibility', visible ? 'visible' : 'none');
+}
+
+// Show the name and category of an area that is clicked, when no school
+// is under the pointer.
+export function onAreaClick(map, describe) {
+  const popup = new Popup({ closeButton: true, maxWidth: '18rem' });
+  map.on('click', (event) => {
+    if (!map.getLayer(AREAS_LAYER) || map.getLayoutProperty(AREAS_LAYER, 'visibility') === 'none') return;
+    if (map.queryRenderedFeatures(event.point, { layers: [SCHOOLS_LAYER] }).length) return;
+    const area = map.queryRenderedFeatures(event.point, { layers: [AREAS_LAYER] })[0];
+    if (!area) return;
+    popup.setLngLat(event.lngLat).setDOMContent(describe(area.properties)).addTo(map);
+  });
 }
