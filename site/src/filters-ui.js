@@ -1,3 +1,4 @@
+import { h as element } from './dom.js';
 import { CATEGORY_LABELS } from './labels.js';
 import { CATEGORIES, DEFAULT_FILTERS, FLAGS, activeFilterCount, filterOptions } from './filters.js';
 import { MODES_BY_KEY } from './modes.js';
@@ -13,16 +14,6 @@ const SELECTS = [
 ];
 
 const CONTROL = 'w-full rounded border border-rule bg-white px-2 py-1.5';
-
-function element(tag, attributes = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [name, value] of Object.entries(attributes)) {
-    if (name === 'text') node.textContent = value;
-    else node.setAttribute(name, value);
-  }
-  node.append(...children);
-  return node;
-}
 
 function checkbox(name, value, label) {
   return element('label', { class: 'flex items-center gap-2' }, [

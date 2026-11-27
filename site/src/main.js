@@ -1,4 +1,5 @@
-import { loadSchools } from './data.js';
+import { loadJson, loadSchools } from './data.js';
+import { createDetail } from './detail.js';
 import { DEFAULT_FILTERS, activeFilterCount, matches } from './filters.js';
 import { setUpFilters } from './filters-ui.js';
 import { byName, number } from './labels.js';
@@ -6,11 +7,14 @@ import { renderLegend, setUpLegend } from './legend.js';
 import { createList } from './list.js';
 import {
   addSchools,
+  addSelection,
   createMap,
   fitSchools,
   mapLoaded,
+  onSchoolClick,
   schoolCollection,
   setSchoolStyle,
+  setSelection,
   showSchools,
 } from './map.js';
 import { MODES_BY_KEY, classValues, colourExpression, radiusExpression } from './modes.js';
@@ -79,28 +83,65 @@ async function start() {
     const syncFilters = setUpFilters(store, schools);
     document.getElementById('filters').open = activeFilterCount(store.get()) > 0;
 
-    const list = createList((roll) => store.set({ school: roll }));
+    addSelection(map);
+    const select = (roll) => store.set({ school: roll });
+    onSchoolClick(map, select, (roll) => byRoll.get(roll)?.name ?? roll);
+    const list = createList(select);
 
+    let enrolment;
+    const detail = createDetail({
+      byRoll,
+      meta,
+      loadEnrolment: () => (enrolment ??= loadJson('enrolment.json')),
+      onSelect: select,
+      onClose: () => store.set({ school: null }),
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && store.get().school) store.set({ school: null });
+    });
+
+    function showDetail(state, previous) {
+      const school = state.school ? byRoll.get(state.school) : null;
+      setSelection(map, school, school ? byRoll.get(school.nearest_school) : null);
+      if (school) {
+        detail.show(school);
+        if (school.coordinates) {
+          map.flyTo({ center: school.coordinates, zoom: Math.max(map.getZoom(), 12) });
+        }
+        return;
+      }
+      detail.hide();
+      // Return focus to the school in the list, or to the search box.
+      const button = previous && document.querySelector(`#result-list button[data-roll="${previous}"]`);
+      (button ?? document.getElementById('search')).focus({ preventScroll: !button });
+    }
+
+    let previousSchool = null;
+    let visible = schools;
     function update(state, changed) {
-      syncFilters(state);
-      const { found, visible } = selectSchools(schools, search, state);
+      const selectionChanged =
+        changed.has('initial') || changed.has('q') || [...changed].some((key) => key in DEFAULT_FILTERS);
       const [mode, colour, radius] = style(state);
       if (changed.has('colour') || changed.has('sizeByEnrolment')) {
         setSchoolStyle(map, colour, radius);
       }
-      renderLegend(mode, visible);
-      showSchools(map, visible.length === schools.length ? null : visible.map((s) => s.roll_number));
-      list.update(visible);
-      status.textContent =
-        visible.length === schools.length
-          ? `${number.format(schools.length)} schools`
-          : `${number.format(visible.length)} of ${number.format(schools.length)}`;
-      const narrowed = found || activeFilterCount(state) > 0;
-      const refit = changed.has('initial') || changed.has('q') || [...changed].some((key) => key in DEFAULT_FILTERS);
-      if (refit && narrowed && visible.length && !state.school) fitSchools(map, visible);
-      if (changed.has('school') && state.school) {
-        const school = byRoll.get(state.school);
-        if (school?.coordinates) map.flyTo({ center: school.coordinates, zoom: Math.max(map.getZoom(), 13) });
+      if (selectionChanged) {
+        syncFilters(state);
+        const selected = selectSchools(schools, search, state);
+        visible = selected.visible;
+        showSchools(map, visible.length === schools.length ? null : visible.map((s) => s.roll_number));
+        list.update(visible);
+        status.textContent =
+          visible.length === schools.length
+            ? `${number.format(schools.length)} schools`
+            : `${number.format(visible.length)} of ${number.format(schools.length)}`;
+        const narrowed = selected.found || activeFilterCount(state) > 0;
+        if (narrowed && visible.length && !state.school) fitSchools(map, visible);
+      }
+      if (selectionChanged || changed.has('colour')) renderLegend(mode, visible);
+      if (changed.has('school') || (changed.has('initial') && state.school)) {
+        showDetail(state, previousSchool);
+        previousSchool = state.school;
       }
     }
 
