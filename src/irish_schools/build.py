@@ -61,6 +61,55 @@ def read_year(source: Source) -> pd.DataFrame:
     return df
 
 
+# Up to 2015/16 the lists include further-education colleges and
+# Post-Leaving Certificate enrolments. From 2016/17 they do not.
+LAST_YEAR_WITH_PLC = 2015
+
+PANEL_COLUMNS = [
+    "roll_number",
+    "academic_year",
+    "school_year",
+    "name",
+    "female",
+    "male",
+    "total",
+    *dept.YEAR_GROUPS,
+    "includes_plc",
+]
+
+CHANGE_YEARS = 5
+
+
+def school_year(academic_year: int) -> str:
+    return f"{academic_year}/{(academic_year + 1) % 100:02d}"
+
+
+def build_panel(sources: list[Source]) -> pd.DataFrame:
+    """Return enrolment for each school and year, one row for each pair."""
+    frames = [read_year(s) for s in sources]
+    df = pd.concat(frames, ignore_index=True)
+    df["school_year"] = df["academic_year"].map(school_year)
+    df["includes_plc"] = df["academic_year"] <= LAST_YEAR_WITH_PLC
+    for column in dept.YEAR_GROUPS:
+        if column not in df:
+            df[column] = pd.NA
+        df[column] = df[column].astype("Int64")
+    df = df[PANEL_COLUMNS].sort_values(["roll_number", "academic_year"])
+    return df.reset_index(drop=True)
+
+
+def add_enrolment_change(points: pd.DataFrame, panel: pd.DataFrame) -> pd.DataFrame:
+    """Add total enrolment five years earlier and the percentage change."""
+    year = int(points["academic_year"].iloc[0])
+    earlier = panel.loc[
+        panel["academic_year"] == year - CHANGE_YEARS, ["roll_number", "total"]
+    ].rename(columns={"total": "total_5y_earlier"})
+    out = points.merge(earlier, on="roll_number", how="left", validate="one_to_one")
+    change = (out["total"] - out["total_5y_earlier"]) / out["total_5y_earlier"] * 100
+    out["change_5y_pct"] = change.astype("Float64").round(1)
+    return out
+
+
 def build_points(source: Source) -> gpd.GeoDataFrame:
     df = read_year(source)
     if df[["latitude", "longitude"]].isna().any().any():
@@ -88,7 +137,20 @@ def write_points(gdf: gpd.GeoDataFrame, stem: str, directory: Path) -> list[Path
     return paths
 
 
+def write_panel(panel: pd.DataFrame, stem: str, directory: Path) -> list[Path]:
+    directory.mkdir(parents=True, exist_ok=True)
+    paths = [directory / f"{stem}.parquet", directory / f"{stem}.csv"]
+    panel.to_parquet(paths[0], index=False)
+    panel.to_csv(paths[1], index=False)
+    return paths
+
+
 def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
-    latest = post_primary_sources()[-1]
-    points = build_points(latest)
-    return write_points(points, "post_primary_schools", directory)
+    lists = post_primary_sources()
+    panel = build_panel(lists)
+    points = build_points(lists[-1])
+    points = gpd.GeoDataFrame(add_enrolment_change(points, panel))
+    return [
+        *write_points(points, "post_primary_schools", directory),
+        *write_panel(panel, "post_primary_enrolment", directory),
+    ]
