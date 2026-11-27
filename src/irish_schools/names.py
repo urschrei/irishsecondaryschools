@@ -8,8 +8,7 @@ letter do not change.
 
 Many names do not have accents and apostrophes. respell replaces words
 with the spellings in spellings.toml, for example "Padraig" with
-"Pádraig". query_name finds words that are possibly spelled
-incorrectly but that have more than one possible correct spelling.
+"Pádraig". The module review finds the possible errors that remain.
 """
 
 import re
@@ -170,13 +169,14 @@ def bare(word: str) -> str:
 class Spellings:
     """The tables in spellings.toml.
 
-    words maps a bare word to its correct spelling. queries maps a bare
-    word to an alternative spelling. schools maps a roll number to the
-    correct name of that school.
+    words maps a bare word to its correct spelling. suspects maps a bare
+    word that is possibly spelled incorrectly to a possible correct
+    spelling. schools maps a roll number to the correct name of that
+    school.
     """
 
     words: dict[str, str] = field(default_factory=dict)
-    queries: dict[str, str] = field(default_factory=dict)
+    suspects: dict[str, str] = field(default_factory=dict)
     schools: dict[str, str] = field(default_factory=dict)
 
 
@@ -185,16 +185,16 @@ def load_spellings(path: Path = SPELLINGS) -> Spellings:
         data = tomllib.load(f)
     spellings = Spellings(
         words=data.get("words", {}),
-        queries=data.get("queries", {}),
+        suspects=data.get("suspects", {}),
         schools=data.get("schools", {}),
     )
-    for table in ("words", "queries"):
+    for table in ("words", "suspects"):
         for key in getattr(spellings, table):
             if key != bare(key):
                 raise ValueError(f"{path}: [{table}] key {key!r} is not a bare word")
-    both = spellings.words.keys() & spellings.queries.keys()
+    both = spellings.words.keys() & spellings.suspects.keys()
     if both:
-        raise ValueError(f"{path}: words in [words] and [queries]: {sorted(both)}")
+        raise ValueError(f"{path}: words in [words] and [suspects]: {sorted(both)}")
     for roll in spellings.schools:
         if not re.fullmatch(r"\d{5}[A-Z]", roll):
             raise ValueError(f"{path}: [schools] key {roll!r} is not a roll number")
@@ -217,19 +217,3 @@ def respell(name: str, words: dict[str, str]) -> str:
         return spelling
 
     return _SPELLED_WORD.sub(replace, name)
-
-
-def query_name(name: str, queries: dict[str, str]) -> str | None:
-    """Return the words in a name that have an entry in queries.
-
-    The result has the form "Rath or Ráth; Dun or Dún", or is None if
-    the name has no such word.
-    """
-    found = []
-    for word in _SPELLED_WORD.findall(name):
-        alternative = queries.get(bare(word))
-        if alternative is not None and alternative != word:
-            query = f"{word} or {alternative}"
-            if query not in found:
-                found.append(query)
-    return "; ".join(found) or None

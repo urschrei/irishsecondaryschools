@@ -14,6 +14,7 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 | `data/post_primary_schools.geojson` | Point data for post-primary schools in the 2025/26 school year. |
 | `data/post_primary_schools.parquet` | data as GeoParquet. |
 | `data/post_primary_enrolment.parquet` | Enrolment for each post-primary school and year, 2011/12 to 2025/26. |
+| `data/primary_name_review.parquet`, `data/post_primary_name_review.parquet` | Possible errors in the current school names. See [School names](#school-names). |
 | `irish_secondary_schools_geocoded_2022.geojson` | The 2021/22 post-primary dataset from 2022. Not updated. |
 
 `roll_number` is the Department's unique identifier for a school, which can be used to join the files to each other and to other Department datasets.
@@ -56,7 +57,7 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 
 | Column | Description |
 | --- | --- |
-| `name_query` | Words in `name` that are possibly spelled incorrectly, with an alternative spelling, for example `Rath or Ráth`. Empty if there are none. |
+| `for_review` | `true` if the name review file has a possible error in `name`. See [School names](#school-names). |
 | `total_5y_earlier` | `total` five school years earlier. Empty if the school was not listed then. |
 | `change_5y_pct` | Percentage change from `total_5y_earlier` to `total`. |
 | `small_area` | 2022 CSO Small Area that contains the school. |
@@ -76,10 +77,28 @@ The build changes the Department names in two ways:
 1. It converts names in capital letters to mixed case, for example `S N NA NGAEL` to `S N na nGael`. Names that the Department gives in mixed case keep their capitalisation.
 2. It applies the tables in `spellings.toml`:
    - `[words]` gives the correct spelling of words that the Department lists often give without accents or apostrophes, for example `Padraig` to `Pádraig` and `Marys` to `Mary's`.
-   - `[queries]` lists words that are possibly spelled incorrectly but that have more than one possible correct spelling, for example `Rath`, which can be `Ráth`. The build does not change these words. It records them in `name_query`.
-   - `[schools]` gives the correct name of a single school, by roll number. It replaces the name in each year that the school has its current name. A school in this table has an empty `name_query`.
+   - `[suspects]` lists words that are possibly spelled incorrectly, with a possible correct spelling, for example `Mor` and `Mór`. Some words have more than one possible spelling: `Rath` can be correct, or can be `Ráth`. The build does not change these words.
+   - `[schools]` gives the correct name of a single school, by roll number. It replaces the name in each year that the school has its current name.
 
-To correct a name in `name_query`, add the school to `[schools]` and run `schools build`.
+The build then examines each current name for possible errors that remain, and writes them to the name review files. A school that has one or more possible errors has `for_review` set to `true`. The build does not examine the names of schools in `[schools]`.
+
+| Column | Description |
+| --- | --- |
+| `roll_number`, `name` | As in the school files. |
+| `kind` | The kind of possible error. See the table below. |
+| `text` | The part of `name` that has the possible error. |
+| `suggestion` | A possible correction of `text`. Empty if there is no suggestion. |
+
+| `kind` | Possible error |
+| --- | --- |
+| `spelling` | A word in `[suspects]`. |
+| `typo` | A word that occurs in one name only and that is one letter from a word that occurs in five or more names, for example `Eucate` and `Educate`. |
+| `apostrophe` | A word after `St` or `Saint` that ends in `s` and that occurs elsewhere without the `s`, for example `Cronans`. |
+| `capitals` | A word in capital letters, a word in lower case that is usually capitalised, or a short word such as `of` or `na` that is capitalised after the first word. |
+| `abbreviation` | A shortened word, for example `Mxd` or `Nfa`. The usual Department abbreviations `N S`, `NS`, `S N`, `SN` and `St` are not included. |
+| `punctuation` | Two spaces together, a space before a comma or after a bracket, a comma at the end, a letter next to a digit, `&` without spaces, a full stop between two words, or an unusual character. |
+
+To correct a name, add the school to `[schools]` and run `schools build`. To record that a name with a possible error is correct, add the school to `[schools]` with its current name.
 
 ## Columns in the enrolment files
 

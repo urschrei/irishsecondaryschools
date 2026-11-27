@@ -24,7 +24,7 @@ OMIT_COLUMNS = {
     "small_area",
     "ed_id",
     "hp_absolute_index",
-    "name_query",
+    "for_review",
 }
 
 # Decimal places for coordinates: 5 places is approximately 1 m.

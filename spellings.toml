@@ -128,18 +128,83 @@ tsaile = "tSáile"
 ui = "Uí"
 vincents = "Vincent's"
 
-# Words that are possibly spelled incorrectly, but that have more than
-# one possible correct spelling. The build does not change these words.
-# It gives the alternative spelling in the column name_query.
-[queries]
+# Words that are possibly spelled incorrectly. Some have more than one
+# possible correct spelling, for example "Rath" and "Ráth". The build
+# does not change these words. It adds them to the name review table,
+# with the spelling in this table as the suggestion. To correct a word
+# in all names, move it to [words].
+[suspects]
 abbain = "Abbáin"
+adhamhnain = "Adhamhnáin"
+aibhistin = "Aibhistín"
+aluinn = "Álainn"
+aodain = "Aodáin"
+arainn = "Árainn"
+ath = "Áth"
+beal = "Béal"
+bhreandain = "Bhreandáin"
+breandain = "Breandáin"
+breandan = "Breandán"
+buachailli = "Buachaillí"
+bui = "Buí"
+cailini = "Cailíní"
+caislean = "Caisleán"
+caoimhin = "Caoimhín"
+chaoimhin = "Chaoimhín"
+choimin = "Choimín"
+chomain = "Chomáin"
+chuil = "Chúil"
+cianain = "Cianáin"
+ciaran = "Ciarán"
+cillin = "Cillín"
+cronain = "Crónáin"
+cul = "Cúl"
+deaglan = "Déaglán"
 dun = "Dún"
+earnain = "Earnáin"
+einde = "Éinde"
+fionan = "Fionán"
+fionntain = "Fionntáin"
 fola = "Fóla"
+gcoillini = "gCoillíní"
+ghiblin = "Ghiblín"
+iosef = "Iósef"
+isadoir = "Isadóir"
+lachtain = "Lachtáin"
+lathrach = "Láthrach"
+lorcan = "Lorcán"
+maelruain = "Maelruáin"
+maistri = "Máistrí"
+maitiu = "Maitiú"
+maodhog = "Maodhóg"
+mbrathar = "mBráthar"
+mbuachailli = "mBuachaillí"
+mhin = "Mhín"
+mhor = "Mhór"
+micheal = "Mícheál"
+min = "Mín"
+mor = "Mór"
+naithi = "Naithí"
 o = "Ó"
+odhran = "Odhrán"
+pairc = "Páirc"
 pol = "Pól"
 rath = "Ráth"
+ronain = "Rónáin"
+ruadhain = "Ruadháin"
+ruain = "Ruáin"
+scrine = "Scríne"
+seamus = "Séamus"
+sean = "Seán"
+seanain = "Seanáin"
+sheanain = "Sheanáin"
+thomais = "Thomáis"
+tir = "Tír"
+trocaire = "Trócaire"
+tslanaitheora = "tSlánaitheora"
+ultain = "Ultáin"
 
 # Names of single schools, by roll number. A name in this table replaces
 # the current name of the school in each year that the school has that
-# name. A school in this table has no name_query.
+# name. The build does not review the names in this table.
 [schools]

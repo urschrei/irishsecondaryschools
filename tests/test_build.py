@@ -1,6 +1,6 @@
 import pandas as pd
 
-from irish_schools.build import apply_spellings
+from irish_schools.build import apply_spellings, review_names
 from irish_schools.names import Spellings
 
 
@@ -17,7 +17,6 @@ def frame(year, rows):
 def test_apply_spellings():
     spellings = Spellings(
         words={"padraig": "Pádraig"},
-        queries={"rath": "Ráth"},
         schools={"00002B": "S N Ráth Mór"},
     )
     frames = [
@@ -32,5 +31,18 @@ def test_apply_spellings():
     # The override applies only in years with the current name.
     assert out[0]["name"].tolist() == ["S N Pádraig", "Rath Mor N S"]
     assert out[2]["name"].tolist() == ["S N Ráth Mór", "Rath N S"]
-    assert out[2]["name_query"].tolist() == [pd.NA, "Rath or Ráth"]
-    assert "name_query" not in out[0]
+
+
+def test_review_names():
+    spellings = Spellings(suspects={"rath": "Ráth"}, schools={"00002B": "S N Rath"})
+    schools = frame(2025, [("00001A", "S N Rath Mor"), ("00002B", "S N Rath")])
+    out = review_names(schools, schools["name"], spellings)
+    assert out.to_dict("records") == [
+        {
+            "roll_number": "00001A",
+            "name": "S N Rath Mor",
+            "kind": "spelling",
+            "text": "Rath",
+            "suggestion": "Ráth",
+        }
+    ]

@@ -6,7 +6,6 @@ from irish_schools.names import (
     bare,
     load_spellings,
     normalise_name,
-    query_name,
     respell,
 )
 
@@ -109,24 +108,6 @@ def test_respell(name, expected):
     assert respell(name, WORDS) == expected
 
 
-QUERIES = {"rath": "Ráth", "o": "Ó"}
-
-
-@pytest.mark.parametrize(
-    ("name", "expected"),
-    [
-        ("S N Rath Mor", "Rath or Ráth"),
-        ("S N Ráth Mór", None),
-        ("S N O Dubhlain Rath Rath", "O or Ó; Rath or Ráth"),
-        ("Kill-O'-the-Grange NS", None),
-        ("O'Carolan College", None),
-        ("Rathcoffey N S", None),
-    ],
-)
-def test_query_name(name, expected):
-    assert query_name(name, QUERIES) == expected
-
-
 def test_load_spellings_rejects_marked_key(tmp_path):
     path = tmp_path / "spellings.toml"
     path.write_text('[words]\n"pádraig" = "Pádraig"\n')
@@ -136,8 +117,8 @@ def test_load_spellings_rejects_marked_key(tmp_path):
 
 def test_load_spellings_rejects_word_in_both_tables(tmp_path):
     path = tmp_path / "spellings.toml"
-    path.write_text('[words]\nrath = "Ráth"\n[queries]\nrath = "Ráth"\n')
-    with pytest.raises(ValueError, match="\\[words\\] and \\[queries\\]"):
+    path.write_text('[words]\nrath = "Ráth"\n[suspects]\nrath = "Ráth"\n')
+    with pytest.raises(ValueError, match="\\[words\\] and \\[suspects\\]"):
         load_spellings(path)
 
 
@@ -150,7 +131,7 @@ def test_load_spellings_rejects_bad_roll_number(tmp_path):
 
 def test_spellings_table_is_valid():
     spellings = load_spellings()
-    for key, spelling in {**spellings.words, **spellings.queries}.items():
+    for key, spelling in spellings.words.items():
         assert bare(spelling) == key, key
 
 
