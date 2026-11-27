@@ -74,9 +74,10 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 
 The build changes the Department names in two ways:
 
-1. It converts names in capital letters to mixed case, for example `S N NA NGAEL` to `S N na nGael`. Names that the Department gives in mixed case keep their capitalisation.
+1. It converts names in capital letters to mixed case, for example `S N NA NGAEL` to `S N na nGael`. In names that the Department gives in mixed case, only `Agus`, `An`, `And`, `Na`, `Of` and `The` change, to lower case after the first word. The build also removes a comma at the end of a name.
 2. It applies the tables in `spellings.toml`:
-   - `[words]` gives the correct spelling of words that the Department lists often give without accents or apostrophes, for example `Padraig` to `Pádraig` and `Marys` to `Mary's`.
+   - `[words]` gives the correct spelling of words that the Department lists often give without accents or apostrophes, for example `Padraig` to `Pádraig` and `Marys` to `Mary's`, and the full form of some abbreviations, for example `Mxd` to `Mixed`.
+   - `[phrases]` gives the correct form of groups of words, for words that are correct alone but not together, for example `Special Sc` to `Special School`. `Sc` alone can be `Scoil` or `School`.
    - `[suspects]` lists words that are possibly spelled incorrectly, with a possible correct spelling, for example `Mor` and `Mór`. Some words have more than one possible spelling: `Rath` can be correct, or can be `Ráth`. The build does not change these words.
    - `[schools]` gives the correct name of a single school, by roll number. It replaces the name in each year that the school has its current name.
 

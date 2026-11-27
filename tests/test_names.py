@@ -3,7 +3,6 @@ import pytest
 
 from irish_schools.build import LEVELS, OUTPUT_DIR
 from irish_schools.names import (
-    bare,
     load_spellings,
     normalise_name,
     respell,
@@ -83,10 +82,30 @@ def test_normalise_name_de(raw, expected):
 
 @pytest.mark.parametrize(
     "name",
-    ["Scoil Mhuire Agus Chormaic", "SN Ath na Lionta", "ABACAS Kilbarrack", ""],
+    [
+        "Scoil Mhuire Gan Smál",
+        "SN Ath na Lionta",
+        "ABACAS Kilbarrack",
+        "An Daingean",
+        "",
+    ],
 )
 def test_normalise_name_keeps_mixed_case(name):
     assert normalise_name(name) == name
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("Scoil Mhuire Agus Chormaic", "Scoil Mhuire agus Chormaic"),
+        ("Cork College Of Commerce", "Cork College of Commerce"),
+        ("Coláiste Na Sionna", "Coláiste na Sionna"),
+        ("Fionnbarra Naofa B.N.S.,", "Fionnbarra Naofa B.N.S."),
+        ("SCOIL MHUIRE N.S.,", "Scoil Mhuire N.S."),
+    ],
+)
+def test_normalise_name_mixed_case(name, expected):
+    assert normalise_name(name) == expected
 
 
 WORDS = {"padraig": "Pádraig", "marys": "Mary's", "mbraithre": "mBráithre"}
@@ -106,6 +125,23 @@ WORDS = {"padraig": "Pádraig", "marys": "Mary's", "mbraithre": "mBráithre"}
 )
 def test_respell(name, expected):
     assert respell(name, WORDS) == expected
+
+
+def test_respell_phrases():
+    phrases = {"special sc": "Special School"}
+    words = {"sp": "Special"}
+    assert respell("St Oliver Plunkett Sp Sc", words, phrases) == (
+        "St Oliver Plunkett Special School"
+    )
+    assert respell("Sc Ciaráin", words, phrases) == "Sc Ciaráin"
+    assert respell("Special Scoil", words, phrases) == "Special Scoil"
+
+
+def test_load_spellings_rejects_single_word_phrase(tmp_path):
+    path = tmp_path / "spellings.toml"
+    path.write_text('[phrases]\nsc = "School"\n')
+    with pytest.raises(ValueError, match="bare words"):
+        load_spellings(path)
 
 
 def test_load_spellings_rejects_marked_key(tmp_path):
@@ -131,8 +167,8 @@ def test_load_spellings_rejects_bad_roll_number(tmp_path):
 
 def test_spellings_table_is_valid():
     spellings = load_spellings()
-    for key, spelling in spellings.words.items():
-        assert bare(spelling) == key, key
+    for key, spelling in {**spellings.words, **spellings.suspects}.items():
+        assert spelling and spelling != key, key
 
 
 def test_school_names_are_current_schools():
