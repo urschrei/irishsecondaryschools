@@ -1,0 +1,133 @@
+# Source files for the build. `schools fetch` downloads each file to
+# sources/<id>.<extension> and verifies its SHA-256 checksum.
+#
+# Department of Education school lists:
+# https://www.gov.ie/en/department-of-education/collections/post-primary-schools-enrolment-figures/
+# The Department publishes these lists under CC BY 4.0.
+#
+# `academic_year` is the first calendar year of the school year:
+# 2025 is the 2025/26 school year.
+
+[[source]]
+id = "post_primary_2011"
+kind = "post_primary_list"
+academic_year = 2011
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20112012.xls"
+sha256 = "951abedb801c3f31ce6f636341eb64a80a3ccfec74ae8c42e1f81c96e16c44de"
+
+[[source]]
+id = "post_primary_2012"
+kind = "post_primary_list"
+academic_year = 2012
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20122013.xls"
+sha256 = "6d714aa9e9b6bb430fea003de0dfb878dce5211cf9df9026d02ecadfba488aaf"
+
+[[source]]
+id = "post_primary_2013"
+kind = "post_primary_list"
+academic_year = 2013
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20132014.xlsx"
+sha256 = "dfd0ba6c4fafddd7e36de9448edc0ef809640277e0bd42094c0ea408a5fff53c"
+
+[[source]]
+id = "post_primary_2014"
+kind = "post_primary_list"
+academic_year = 2014
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20142015.xlsx"
+sha256 = "ca8a7f022efc9b0c74e39175a5c953bfb874a6264c15271a6093d2b1e153e466"
+
+[[source]]
+id = "post_primary_2015"
+kind = "post_primary_list"
+academic_year = 2015
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20152016.xlsx"
+sha256 = "a76fe27f02c5080bc6ec4f383e7be2298c2718f00ec241062afa5d0cc830510b"
+
+[[source]]
+id = "post_primary_2016"
+kind = "post_primary_list"
+academic_year = 2016
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20162017.xlsx"
+sha256 = "b60d1797856964564eb72021563a0c33041398eadb9352b5e4e03c1d28adefdc"
+
+[[source]]
+id = "post_primary_2017"
+kind = "post_primary_list"
+academic_year = 2017
+url = "https://assets.gov.ie/static/documents/post-primary-schools-lists-20172018.xlsx"
+sha256 = "3c3e0582239f19b4f8855295d762e78943eba7765af07cdfbe6470d5e11c3a8d"
+
+[[source]]
+id = "post_primary_2018"
+kind = "post_primary_list"
+academic_year = 2018
+url = "https://assets.gov.ie/static/documents/post-primary-schools-list-20182019.xlsx"
+sha256 = "24ea17b2d6227f180fd815be56199be76aa90102c422357036e955f00f86e0c1"
+
+[[source]]
+id = "post_primary_2019"
+kind = "post_primary_list"
+academic_year = 2019
+url = "https://assets.gov.ie/static/documents/post-primary-schools-20192020.xlsx"
+sha256 = "db8d548109c4144b7b6beb2fb1591dfbd350e140645316d405af98a3325ef2e5"
+
+[[source]]
+id = "post_primary_2020"
+kind = "post_primary_list"
+academic_year = 2020
+url = "https://assets.gov.ie/static/documents/post-primary-schools-20202021.xlsx"
+sha256 = "047b7df0388869adfcd5523b4cb4be2310867ad1c5e83972b012153bb1c32246"
+
+[[source]]
+id = "post_primary_2021"
+kind = "post_primary_list"
+academic_year = 2021
+url = "https://assets.gov.ie/static/documents/post-primary-schools-20212022-dfce3d90-386a-49bd-a30f-36ede87e45e5.xlsx"
+sha256 = "b0b46d143c6d3dc8c75ac97a346fe791dfa02d3011bab717cb106e88ebd6376f"
+
+[[source]]
+id = "post_primary_2022"
+kind = "post_primary_list"
+academic_year = 2022
+url = "https://assets.gov.ie/static/documents/post-primary-schools-20222023.xlsx"
+sha256 = "ffb47f8ff13e65541fac5b5c4dbbd91590b5e69e8225084583f9d6dadba569b5"
+
+[[source]]
+id = "post_primary_2023"
+kind = "post_primary_list"
+academic_year = 2023
+url = "https://assets.gov.ie/static/documents/post-primary-schools-20232024.xlsx"
+sha256 = "5328381d1f7c0d38d44a65ab5925e7ef73a05410a5444d6f959f73a4cb21d824"
+
+[[source]]
+id = "post_primary_2024"
+kind = "post_primary_list"
+academic_year = 2024
+url = "https://assets.gov.ie/static/documents/09fe3ad4/Data_on_Individual_Schools_PPOD_2024_25.xlsx"
+sha256 = "7a2e0a1f94a19c610b9c5177ec1e01a52020d6c8c7e785b359f266108be09e46"
+
+[[source]]
+id = "post_primary_2025"
+kind = "post_primary_list"
+academic_year = 2025
+url = "https://assets.gov.ie/static/documents/0308298d/Data_on_Individual_Schools_post_primary_to_publish_010726.xlsx"
+sha256 = "e7b8c1984573265dd16d71ea513449fa9949758a60656e675cdc2c802c74534d"
+
+# Pobal HP Deprivation Index 2022, by Electoral Division. CC BY 4.0.
+# https://data.gov.ie/dataset/pobal-hp-deprivation-index-scores-2022
+[[source]]
+id = "hp_deprivation_2022"
+kind = "deprivation"
+url = "https://www.pobal.ie/wp-content/uploads/2024/01/hp-deprivation-index-scores-2022.csv"
+sha256 = "48288b0651c63c5ed3445c36457b116c1bc1ab7a0932b4092617c5a549e2f040"
+
+# CSO Small Areas 2022, generalised to 20 m. Tailte Eireann, CC BY 4.0.
+# ArcGIS Hub makes this export on request, so its bytes can change when the
+# content does not. A checksum mismatch for this source is a warning only.
+[[source]]
+id = "small_areas_2022"
+kind = "small_areas"
+url = "https://data-osi.opendata.arcgis.com/api/download/v1/items/9472cff586d74f2ba3c240d4344c5720/geojson?layers=0"
+extension = "geojson"
+sha256 = "536e3962ce394252ae4eda6a20953e6c60f77c37a009396f23cc4cf7d503a2a3"
+checksum_stable = false
