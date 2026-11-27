@@ -84,7 +84,7 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 - **Generalised boundaries.** The Small Areas are generalised to 20 m. A school very near a boundary can fall in the adjacent Small Area.
 - **Straight-line distance.** The access measures do not use the road network or travel time. Junior and senior primary schools often share a campus, so many primary schools have a nearest school at 0 km.
 - **Temporary sites.** Some new schools operate from temporary buildings. The Department location can be the temporary site.
-- **Corrected values.** The build corrects the value "Oridinary" in the primary `school_type` to "Ordinary".
+- **Corrected values.** The build corrects the value "Oridinary" in the primary `school_type` to "Ordinary". It gives `ethos` values one capitalisation at both levels, for example "Church of Ireland": the post-primary lists use capitals.
 
 ## Sources and licence
 

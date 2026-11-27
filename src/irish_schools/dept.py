@@ -133,6 +133,26 @@ HEADER_SEARCH_ROWS = 12
 # Spelling errors in the Department's values, by column.
 VALUE_FIXES = {"school_type": {"Oridinary": "Ordinary"}}
 
+# Words that stay in lower case inside a title-case value.
+_MINOR_WORDS = {"of", "and"}
+
+
+def normalise_ethos(series: pd.Series) -> pd.Series:
+    """Give ethos values one capitalisation, for example "Church of Ireland".
+
+    The post-primary lists use capitals ("CATHOLIC") and the primary
+    lists use title case ("Church Of Ireland").
+    """
+
+    def title(value: str) -> str:
+        words = value.title().split(" ")
+        return " ".join(
+            w.lower() if i and w.lower() in _MINOR_WORDS else w
+            for i, w in enumerate(words)
+        )
+
+    return series.map(title, na_action="ignore").astype("string")
+
 
 def _normalise_header(value: object) -> str:
     return " ".join(str(value).split()).strip().lower()
@@ -281,6 +301,8 @@ def _read_sheet(
     for column, fixes in VALUE_FIXES.items():
         if column in df:
             df[column] = df[column].replace(fixes)
+    if "ethos" in df:
+        df["ethos"] = normalise_ethos(df["ethos"])
 
     if df["roll_number"].duplicated().any():
         dupes = df.loc[df["roll_number"].duplicated(), "roll_number"].tolist()

@@ -103,3 +103,8 @@ def test_post_primary_panel_flags_plc_years(level):
 def test_phone_numbers_are_e164(level):
     phones = points_of(level)["phone"].dropna()
     assert phones.str.fullmatch(r"\+353\d{7,9}(;\+353\d{7,9})*").all()
+
+
+def test_ethos_is_not_in_capitals(level):
+    ethos = points_of(level)["ethos"].dropna()
+    assert not ethos.str.isupper().any()
