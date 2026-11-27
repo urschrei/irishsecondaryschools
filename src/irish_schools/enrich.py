@@ -42,7 +42,11 @@ def ed_key(ids: pd.Series) -> pd.Series:
     return (
         ids.astype("string")
         .str.split("/")
-        .map(lambda parts: "/".join(p.strip().lstrip("0") for p in parts))
+        .map(
+            lambda parts: "/".join(p.strip().lstrip("0") for p in parts),
+            na_action="ignore",
+        )
+        .astype("string")
     )
 
 

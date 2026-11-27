@@ -131,3 +131,112 @@ url = "https://data-osi.opendata.arcgis.com/api/download/v1/items/9472cff586d74f
 extension = "geojson"
 sha256 = "536e3962ce394252ae4eda6a20953e6c60f77c37a009396f23cc4cf7d503a2a3"
 checksum_stable = false
+
+# Department of Education primary school lists, mainstream and special:
+# https://www.gov.ie/en/department-of-education/collections/primary-schools-enrolment-figures/
+
+[[source]]
+id = "primary_2011"
+kind = "primary_list"
+academic_year = 2011
+url = "https://assets.gov.ie/static/documents/primary-schools-2011-2012.xls"
+sha256 = "44f350a62f9b9df78cd04cf54bf99a61d42008f04a9a381820d7178d6b1b2094"
+
+[[source]]
+id = "primary_2012"
+kind = "primary_list"
+academic_year = 2012
+url = "https://assets.gov.ie/static/documents/primary-and-special-schools-2012-2013.xls"
+sha256 = "8e03dd8f890f76a7789cc9078a0023f6441d2f4d98cc7f7793cf7fb09cb33b91"
+
+[[source]]
+id = "primary_2013"
+kind = "primary_list"
+academic_year = 2013
+url = "https://assets.gov.ie/static/documents/primary-and-special-schools-2013-2014.xlsx"
+sha256 = "21f9a99509ad8e7935a17a4d8878bc1463834af20d5ec62a0eda43ffafaec43b"
+
+[[source]]
+id = "primary_2014"
+kind = "primary_list"
+academic_year = 2014
+url = "https://assets.gov.ie/static/documents/primary-and-special-schools-2014-2015.xls"
+sha256 = "847abfdd404f8372077bad55f7b4a570dfde2c57c4f43d7545684ea1b0a68362"
+
+[[source]]
+id = "primary_2015"
+kind = "primary_list"
+academic_year = 2015
+url = "https://assets.gov.ie/static/documents/primary-and-special-schools-2015-2016.xlsx"
+sha256 = "7ab0e30a66bea4a8a0068ba5ed7df1058533db17fbd0c1e25326a3d12881c82d"
+
+[[source]]
+id = "primary_2016"
+kind = "primary_list"
+academic_year = 2016
+url = "https://assets.gov.ie/static/documents/primary-and-special-schools-2016-2017.xlsx"
+sha256 = "a7a6c9b5e4d8deda9457bc6bbdda97de10ce15b80c9216fde92569d28ec004d2"
+
+[[source]]
+id = "primary_2017"
+kind = "primary_list"
+academic_year = 2017
+url = "https://assets.gov.ie/static/documents/primary-schools-2017-2018.xlsx"
+sha256 = "a9accfd3402e324e014f774c9fbdc08f6ff4ea61c55b2efe254a805526a999b7"
+
+[[source]]
+id = "primary_2018"
+kind = "primary_list"
+academic_year = 2018
+url = "https://assets.gov.ie/static/documents/primary-schools-2018-2019.xlsx"
+sha256 = "1fea3d8fff42412ffe01c745acbe301403f63b2cc8956989333f588437415702"
+
+[[source]]
+id = "primary_2019"
+kind = "primary_list"
+academic_year = 2019
+url = "https://assets.gov.ie/static/documents/primary-schools-20192020.xlsx"
+sha256 = "0d2394f0d951760dc552926a32ab17e33f0c633170aac8e982cc1a9494bf4494"
+
+[[source]]
+id = "primary_2020"
+kind = "primary_list"
+academic_year = 2020
+url = "https://assets.gov.ie/static/documents/primary-schools-20202021.xlsx"
+sha256 = "e0ce96fbfb6412de2f6aa561a3616ddd3639223a8c427d0a36e88d85a1521c50"
+
+[[source]]
+id = "primary_2021"
+kind = "primary_list"
+academic_year = 2021
+url = "https://assets.gov.ie/static/documents/primary-schools-20212022.xlsx"
+sha256 = "22cdf52d88d47a4e0adb64aa44a00826cbf026c689f80eb9f41af7fe5012a18c"
+
+[[source]]
+id = "primary_2022"
+kind = "primary_list"
+academic_year = 2022
+url = "https://assets.gov.ie/static/documents/primary-schools-20222023.xlsx"
+sha256 = "34ea112aec731fe91aa9ca11406e58afd9bc69078b8ef5a215bfff08eefff992"
+
+[[source]]
+id = "primary_2023"
+kind = "primary_list"
+academic_year = 2023
+url = "https://assets.gov.ie/static/documents/primary-schools-20232024.xlsx"
+sha256 = "8e8c854037f8e2100b765c645fab3eef9849416c7f5ffbab370e65b4dc562335"
+
+[[source]]
+id = "primary_2024"
+kind = "primary_list"
+academic_year = 2024
+url = "https://assets.gov.ie/static/documents/09fe3ad4/Data_on_Individual_Schools_Mainstream_2024_25.xlsx"
+sha256 = "ca3e702d3d4a7e6c7e602fc905f2a65dd134d4df3dc2aad4cfa08e1cd1da2d6e"
+
+[[source]]
+id = "primary_2025"
+kind = "primary_list"
+academic_year = 2025
+url = "https://assets.gov.ie/static/documents/8e1b86ab/Data_on_Individual_Schools_Mainstream..xlsx"
+extension = "xlsx"
+sha256 = "5504bfa63ca5090404006fdadf5cae39c163df4ffb0b859a0d883604538e737c"

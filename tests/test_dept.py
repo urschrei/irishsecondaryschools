@@ -108,15 +108,13 @@ def test_read_year_groups(tmp_path):
     assert df.iloc[0][dept.YEAR_GROUPS].tolist() == [1, 2, 3, 4, 5, 6]
 
 
-def downloaded_lists():
-    return [
-        s
-        for s in sources.load_manifest()
-        if s.kind == "post_primary_list" and s.path().exists()
-    ]
+def downloaded_lists(kind):
+    return [s for s in sources.load_manifest() if s.kind == kind and s.path().exists()]
 
 
-@pytest.mark.parametrize("source", downloaded_lists(), ids=lambda s: s.id)
+@pytest.mark.parametrize(
+    "source", downloaded_lists("post_primary_list"), ids=lambda s: s.id
+)
 def test_downloaded_list_is_consistent(source):
     df = dept.read_school_list(source.path(), source.academic_year)
     assert len(df) > 650
@@ -148,6 +146,7 @@ def primary_row(roll, name, female, male):
         "Principal Name": "A Person",
         "Phone No.": "01000000",
         "Gaeltacht Indicator (Y/N)": "N",
+        "School Type": "Oridinary",
         "Female": female,
         "Male": male,
         "Enrolment per Return": female + male,
@@ -174,6 +173,7 @@ def test_read_primary_list(tmp_path):
     assert df["special_school"].tolist() == [False, True]
     assert df["total"].tolist() == [15, 7]
     assert df["gaeltacht"].tolist() == [False, False]
+    assert df["school_type"].tolist() == ["Ordinary", "Ordinary"]
     assert not dept.CONTACT_COLUMNS & set(df.columns)
 
     classes = dept.read_class_groups(path)
@@ -188,3 +188,11 @@ def test_read_primary_list_rejects_school_on_both_lists(tmp_path):
     write_primary_workbook(path, [row], [row], [{"Roll Number": "00359V"}])
     with pytest.raises(ValueError, match="both lists"):
         dept.read_primary_list(path, 2025)
+
+
+@pytest.mark.parametrize("source", downloaded_lists("primary_list"), ids=lambda s: s.id)
+def test_downloaded_primary_list_is_consistent(source):
+    df = dept.read_primary_list(source.path(), source.academic_year)
+    assert len(df) > 3000
+    assert 100 < df["special_school"].sum() < 200
+    assert (df["female"] + df["male"] == df["total"]).all()

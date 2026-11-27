@@ -130,6 +130,9 @@ FLAG_COLUMNS = ["fee_paying", "island", "gaeltacht", "deis"]
 COUNT_COLUMNS = ["female", "male", "total"]
 HEADER_SEARCH_ROWS = 12
 
+# Spelling errors in the Department's values, by column.
+VALUE_FIXES = {"school_type": {"Oridinary": "Ordinary"}}
+
 
 def _normalise_header(value: object) -> str:
     return " ".join(str(value).split()).strip().lower()
@@ -275,6 +278,9 @@ def _read_sheet(
     )
     for column in text:
         df[column] = df[column].astype("string").str.strip()
+    for column, fixes in VALUE_FIXES.items():
+        if column in df:
+            df[column] = df[column].replace(fixes)
 
     if df["roll_number"].duplicated().any():
         dupes = df.loc[df["roll_number"].duplicated(), "roll_number"].tolist()

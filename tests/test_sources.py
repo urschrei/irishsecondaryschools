@@ -23,8 +23,9 @@ def test_manifest_ids_are_unique():
     assert len(ids) == len(set(ids))
 
 
-def test_manifest_years_are_contiguous():
-    lists = [s for s in sources.load_manifest() if s.kind == "post_primary_list"]
+@pytest.mark.parametrize("kind", ["post_primary_list", "primary_list"])
+def test_manifest_years_are_contiguous(kind):
+    lists = [s for s in sources.load_manifest() if s.kind == kind]
     years = sorted(s.academic_year for s in lists if s.academic_year is not None)
     assert len(years) == len(lists)
     assert years == list(range(years[0], years[-1] + 1))
