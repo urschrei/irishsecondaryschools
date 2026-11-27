@@ -7,7 +7,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from irish_schools import areas, dept, enrich, names, phone
+from irish_schools import areas, dept, enrich, names, phone, review
 from irish_schools.names import Spellings
 from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
@@ -21,7 +21,7 @@ POINT_COLUMNS = [
     "roll_number",
     "academic_year",
     "name",
-    "name_query",
+    "for_review",
     "address_1",
     "address_2",
     "address_3",
@@ -117,8 +117,7 @@ def apply_spellings(
     """Correct the spelling of school names in each year.
 
     A name in spellings.schools replaces the name of that school in each
-    year that the school has its name in the last year. The last frame
-    gets the column name_query.
+    year that the school has its name in the last year.
     """
     out = []
     for df in frames:
@@ -135,19 +134,28 @@ def apply_spellings(
         for df in out:
             same = (df["roll_number"] == roll) & (df["name"] == current[roll])
             df.loc[same, "name"] = name
-
-    last = out[-1]
-    last["name_query"] = pd.Series(
-        [
-            None
-            if roll in spellings.schools
-            else names.query_name(name, spellings.queries)
-            for roll, name in zip(last["roll_number"], last["name"], strict=True)
-        ],
-        index=last.index,
-        dtype="string",
-    )
     return out
+
+
+REVIEW_COLUMNS = ["roll_number", "name", "kind", "text", "suggestion"]
+
+
+def review_names(
+    schools: pd.DataFrame, all_names: pd.Series, spellings: Spellings
+) -> pd.DataFrame:
+    """Return one row for each possible error in the names of schools.
+
+    all_names gives the frequency of each word (see review.Vocabulary).
+    The schools in spellings.schools are not reviewed.
+    """
+    vocabulary = review.Vocabulary(all_names.dropna())
+    rows = []
+    for roll, name in zip(schools["roll_number"], schools["name"], strict=True):
+        if roll in spellings.schools or pd.isna(name):
+            continue
+        for issue in review.review_name(name, vocabulary, spellings.suspects):
+            rows.append((roll, name, issue.kind, issue.text, issue.suggestion))
+    return pd.DataFrame(rows, columns=REVIEW_COLUMNS, dtype="string")
 
 
 def school_year(academic_year: int) -> str:
@@ -227,8 +235,11 @@ def build_level(
     sources = level.sources()
     frames = apply_spellings([read_year(level, s) for s in sources], spellings)
     panel = build_panel(level, frames)
+    current = frames[-1]
+    reviews = review_names(current, panel["name"], spellings)
+    current["for_review"] = current["roll_number"].isin(reviews["roll_number"])
 
-    points = to_points(frames[-1])
+    points = to_points(current)
     points = gpd.GeoDataFrame(add_enrolment_change(points, panel))
     points = enrich.add_small_areas(points, small_areas)
     points = gpd.GeoDataFrame(enrich.add_deprivation(points, deprivation))
@@ -241,6 +252,7 @@ def build_level(
     return [
         *write_points(points, f"{level.stem}_schools", directory),
         *write_panel(panel, f"{level.stem}_enrolment", directory),
+        *write_panel(reviews, f"{level.stem}_name_review", directory),
     ]
 
 

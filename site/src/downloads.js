@@ -8,6 +8,8 @@ const CONTENTS = {
   'post_primary_schools.geojson': 'Post-primary schools as points.',
   'post_primary_schools.parquet': 'Post-primary schools as GeoParquet.',
   'post_primary_enrolment.parquet': 'Enrolment of each post-primary school in each year from 2011/12.',
+  'primary_name_review.parquet': 'Possible errors in the names of primary schools, for review.',
+  'post_primary_name_review.parquet': 'Possible errors in the names of post-primary schools, for review.',
 };
 
 const size = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 1 });
