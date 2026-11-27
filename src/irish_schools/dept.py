@@ -1,8 +1,10 @@
-"""Read Department of Education post-primary school lists.
+"""Read Department of Education school lists.
 
 The Department changes sheet names, header rows and column names from
-year to year. This module finds the school list in each workbook and
-gives it one schema.
+year to year. This module finds the school lists in each workbook and
+gives them one schema. Post-primary workbooks have one list. Primary
+workbooks have a list of mainstream schools and a list of special
+schools.
 """
 
 import re
@@ -56,11 +58,63 @@ HEADER_MAP = {
     "principal name": "principal_name",
     "email": "email",
     "phone": "phone",
+    # Headers in the primary lists.
+    "academic year (enrolment)": "academic_year",
+    "roll no.": "roll_number",
+    "official name": "name",
+    "address line 1": "address_1",
+    "address line 2": "address_2",
+    "address line 3": "address_3",
+    "address line 4": "address_4",
+    "address (line 1)": "address_1",
+    "address (line 2)": "address_2",
+    "address (line 3)": "address_3",
+    "address (line 4)": "address_4",
+    "county name": "county",
+    "county description": "county",
+    "local authority desc": "local_authority",
+    "local authority description": "local_authority",
+    "ethos/religion desc": "ethos",
+    "ethos description": "ethos",
+    "school patron": "patron",
+    "school type": "school_type",
+    "school type description": "school_type",
+    "school level": "school_level",
+    "irish classification desc": "irish_classification",
+    "irish classification description": "irish_classification",
+    "island ind (y/n)": "island",
+    "island (y/n)": "island",
+    "gaeltacht ind (y/n)": "gaeltacht",
+    "gaeltacht indicator": "gaeltacht",
+    "gaeltacht indicator (y/n)": "gaeltacht",
+    "deis": "deis",
+    "girls": "female",
+    "boys": "male",
+    "stats year girls": "female",
+    "stats year boys": "male",
+    "stats year pupils": "total",
+    "enrolment per return": "total",
+    "principal": "principal_name",
+    "phone number": "phone",
+    "phone no.": "phone",
+    "email address": "email",
 }
 
 # Headers that carry the year in their text, such as "Total 2025-2026",
 # "TOTAL (2019-20)" or "Count Unique Enrolments - <=30th Sept".
 TOTAL_PATTERN = re.compile(r"^(total\b.*\d{4}|count unique enrolments)")
+
+CLASS_GROUPS = {
+    "junior infants": "junior_infants",
+    "senior infants": "senior_infants",
+    "first class": "class_1",
+    "second class": "class_2",
+    "third class": "class_3",
+    "fourth class": "class_4",
+    "fifth class": "class_5",
+    "sixth class": "class_6",
+    "special class": "special_class",
+}
 
 YEAR_GROUPS = ["jc1", "jc2", "jc3", "ty", "lc1", "lc2"]
 _YEAR_GROUP_PROGRAMMES = [
@@ -93,7 +147,7 @@ def map_header(value: object) -> str | None:
 
 def _find_header_row(raw: pd.DataFrame) -> int | None:
     for i in range(min(HEADER_SEARCH_ROWS, len(raw))):
-        if any(_normalise_header(v) == "roll number" for v in raw.iloc[i]):
+        if any(map_header(v) == "roll_number" for v in raw.iloc[i]):
             return i
     return None
 
@@ -122,6 +176,32 @@ def _clean_flag(series: pd.Series) -> pd.Series:
     return values.map({"Y": True, "N": False}).astype("boolean")
 
 
+def _primary_sheets(path: Path) -> list[tuple[str, int, bool]]:
+    """Return name, header row and special-school flag of each list sheet."""
+    workbook = pd.ExcelFile(path, engine="calamine")
+    found = []
+    for sheet in workbook.sheet_names:
+        name = _normalise_header(sheet)
+        if "standard" in name:
+            continue
+        if name.startswith("mainstream"):
+            special = False
+        elif name.startswith("special"):
+            special = True
+        else:
+            continue
+        raw = pd.read_excel(
+            workbook, sheet_name=sheet, header=None, nrows=HEADER_SEARCH_ROWS
+        )
+        row = _find_header_row(raw)
+        if row is None:
+            raise ValueError(f"{path}: sheet {sheet!r} has no 'Roll Number' header")
+        found.append((str(sheet), row, special))
+    if [special for _, _, special in found] != [False, True]:
+        raise ValueError(f"{path}: expected one mainstream and one special sheet")
+    return found
+
+
 def read_school_list(path: Path, academic_year: int) -> pd.DataFrame:
     """Read one year's post-primary school list.
 
@@ -130,6 +210,29 @@ def read_school_list(path: Path, academic_year: int) -> pd.DataFrame:
     count is present.
     """
     sheet, header_row = _school_list_sheet(path)
+    return _read_sheet(path, sheet, header_row, academic_year)
+
+
+def read_primary_list(path: Path, academic_year: int) -> pd.DataFrame:
+    """Read one year's primary school lists, mainstream and special.
+
+    The column special_school is True for schools on the special list.
+    """
+    frames = []
+    for sheet, header_row, special in _primary_sheets(path):
+        df = _read_sheet(path, sheet, header_row, academic_year)
+        df["special_school"] = special
+        frames.append(df)
+    df = pd.concat(frames, ignore_index=True)
+    if df["roll_number"].duplicated().any():
+        dupes = df.loc[df["roll_number"].duplicated(), "roll_number"].tolist()
+        raise ValueError(f"{path}: roll numbers on both lists {dupes}")
+    return df
+
+
+def _read_sheet(
+    path: Path, sheet: str, header_row: int, academic_year: int
+) -> pd.DataFrame:
     raw = pd.read_excel(
         path, sheet_name=sheet, header=header_row, dtype=object, engine="calamine"
     )
@@ -204,9 +307,7 @@ def read_year_groups(path: Path) -> pd.DataFrame | None:
         raise ValueError(f"{path}: unexpected year-group headers {found}")
 
     roll_col = next(
-        i
-        for i, v in enumerate(raw.iloc[header_row])
-        if _normalise_header(v) == "roll number"
+        i for i, v in enumerate(raw.iloc[header_row]) if map_header(v) == "roll_number"
     )
     body = raw.iloc[header_row + 1 :]
     df = pd.DataFrame({"roll_number": _clean_roll_number(body.iloc[:, roll_col])})
@@ -214,6 +315,33 @@ def read_year_groups(path: Path) -> pd.DataFrame | None:
         df[name] = pd.to_numeric(body.iloc[:, position], errors="coerce").astype(
             "Int64"
         )
+    df = df[df["roll_number"].str.fullmatch(r"\d{5}[A-Z]", na=False)]
+    return df.reset_index(drop=True)
+
+
+def read_class_groups(path: Path) -> pd.DataFrame | None:
+    """Read mainstream enrolment by class from the 'by Standard' sheet.
+
+    Return None if the workbook has no such sheet.
+    """
+    workbook = pd.ExcelFile(path, engine="calamine")
+    sheets = [s for s in workbook.sheet_names if "standard" in _normalise_header(s)]
+    if not sheets:
+        return None
+    raw = pd.read_excel(workbook, sheet_name=sheets[0], header=None)
+    header_row = _find_header_row(raw)
+    if header_row is None:
+        raise ValueError(f"{path}: cannot find the class header")
+    headers = [_normalise_header(v) for v in raw.iloc[header_row]]
+    roll_col = next(
+        i for i, v in enumerate(raw.iloc[header_row]) if map_header(v) == "roll_number"
+    )
+    body = raw.iloc[header_row + 1 :]
+    df = pd.DataFrame({"roll_number": _clean_roll_number(body.iloc[:, roll_col])})
+    for header, name in CLASS_GROUPS.items():
+        if header in headers:
+            values = body.iloc[:, headers.index(header)]
+            df[name] = pd.to_numeric(values, errors="coerce").astype("Int64")
     df = df[df["roll_number"].str.fullmatch(r"\d{5}[A-Z]", na=False)]
     return df.reset_index(drop=True)
 

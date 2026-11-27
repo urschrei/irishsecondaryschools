@@ -122,3 +122,69 @@ def test_downloaded_list_is_consistent(source):
     assert len(df) > 650
     assert df["total"].notna().all()
     assert (df["female"] + df["male"] == df["total"]).all()
+
+
+def write_primary_workbook(path, mainstream, special, classes):
+    with pd.ExcelWriter(path) as writer:
+        pd.DataFrame([["About this data"]]).to_excel(
+            writer, sheet_name="Explanatory Note", header=False, index=False
+        )
+        pd.DataFrame(mainstream).to_excel(
+            writer, sheet_name="Mainstream", startrow=1, index=False
+        )
+        pd.DataFrame(classes).to_excel(
+            writer, sheet_name="Mainstream by Standard", index=False
+        )
+        pd.DataFrame(special).to_excel(
+            writer, sheet_name="Special", startrow=1, index=False
+        )
+
+
+def primary_row(roll, name, female, male):
+    return {
+        "Academic Year (Enrolment)": 2025,
+        "Roll Number": roll,
+        "Official Name": name,
+        "Principal Name": "A Person",
+        "Phone No.": "01000000",
+        "Gaeltacht Indicator (Y/N)": "N",
+        "Female": female,
+        "Male": male,
+        "Enrolment per Return": female + male,
+    }
+
+
+def test_read_primary_list(tmp_path):
+    path = tmp_path / "primary.xlsx"
+    write_primary_workbook(
+        path,
+        mainstream=[primary_row("00359V", "Mainstream NS", 10, 5)],
+        special=[primary_row("17890H", "Special School", 3, 4)],
+        classes=[
+            {
+                "Roll Number": "00359V",
+                "Junior Infants": 7,
+                "Sixth Class": 8,
+                "Enrolment per Return": 15,
+            }
+        ],
+    )
+    df = dept.drop_contact_columns(dept.read_primary_list(path, 2025))
+    assert df["roll_number"].tolist() == ["00359V", "17890H"]
+    assert df["special_school"].tolist() == [False, True]
+    assert df["total"].tolist() == [15, 7]
+    assert df["gaeltacht"].tolist() == [False, False]
+    assert not dept.CONTACT_COLUMNS & set(df.columns)
+
+    classes = dept.read_class_groups(path)
+    assert classes is not None
+    assert classes.iloc[0][["junior_infants", "class_6"]].tolist() == [7, 8]
+    assert "class_1" not in classes
+
+
+def test_read_primary_list_rejects_school_on_both_lists(tmp_path):
+    path = tmp_path / "primary.xlsx"
+    row = primary_row("00359V", "Mainstream NS", 10, 5)
+    write_primary_workbook(path, [row], [row], [{"Roll Number": "00359V"}])
+    with pytest.raises(ValueError, match="both lists"):
+        dept.read_primary_list(path, 2025)

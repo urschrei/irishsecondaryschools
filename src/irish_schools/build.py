@@ -1,5 +1,7 @@
 """Build the published datasets."""
 
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import geopandas as gpd
@@ -10,9 +12,10 @@ from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
 OUTPUT_DIR = ROOT / "data"
 WGS84 = "EPSG:4326"
+CHANGE_YEARS = 5
 
-# Column order for the point dataset. Columns that a year does not have
-# are left out.
+# Column order for the point datasets. Columns that a level or year does
+# not have are left out.
 POINT_COLUMNS = [
     "roll_number",
     "academic_year",
@@ -25,7 +28,9 @@ POINT_COLUMNS = [
     "county",
     "local_authority",
     "planning_area",
+    "special_school",
     "school_type",
+    "school_level",
     "ethos",
     "patron",
     "gender",
@@ -38,63 +43,86 @@ POINT_COLUMNS = [
     "female",
     "male",
     "total",
+    *dept.CLASS_GROUPS.values(),
     *dept.YEAR_GROUPS,
     "latitude",
     "longitude",
 ]
 
 
-def post_primary_sources() -> list[Source]:
-    lists = [s for s in load_manifest() if s.kind == "post_primary_list"]
-    return sorted(lists, key=lambda s: s.academic_year or 0)
+@dataclass(frozen=True)
+class Level:
+    """How to read and publish one level of school."""
+
+    kind: str
+    stem: str
+    read_list: Callable[[Path, int], pd.DataFrame]
+    read_groups: Callable[[Path], pd.DataFrame | None]
+    groups: list[str]
+    # Last year whose lists include further-education colleges and
+    # Post-Leaving Certificate enrolments, if any.
+    last_year_with_plc: int | None = None
+
+    def sources(self) -> list[Source]:
+        lists = [s for s in load_manifest() if s.kind == self.kind]
+        return sorted(lists, key=lambda s: s.academic_year or 0)
+
+    def panel_columns(self) -> list[str]:
+        columns = ["roll_number", "academic_year", "school_year", "name"]
+        if self is PRIMARY:
+            columns.append("special_school")
+        columns += ["female", "male", "total", *self.groups]
+        if self.last_year_with_plc is not None:
+            columns.append("includes_plc")
+        return columns
 
 
-def read_year(source: Source) -> pd.DataFrame:
-    """Read one year's list, with year groups, without contact columns."""
+POST_PRIMARY = Level(
+    kind="post_primary_list",
+    stem="post_primary",
+    read_list=dept.read_school_list,
+    read_groups=dept.read_year_groups,
+    groups=dept.YEAR_GROUPS,
+    last_year_with_plc=2015,
+)
+
+PRIMARY = Level(
+    kind="primary_list",
+    stem="primary",
+    read_list=dept.read_primary_list,
+    read_groups=dept.read_class_groups,
+    groups=list(dept.CLASS_GROUPS.values()),
+)
+
+LEVELS = [POST_PRIMARY, PRIMARY]
+
+
+def read_year(level: Level, source: Source) -> pd.DataFrame:
+    """Read one year's list, with enrolment groups, without contact columns."""
     assert source.academic_year is not None
-    df = dept.drop_contact_columns(
-        dept.read_school_list(source.path(), source.academic_year)
-    )
-    groups = dept.read_year_groups(source.path())
+    df = level.read_list(source.path(), source.academic_year)
+    df = dept.drop_contact_columns(df)
+    groups = level.read_groups(source.path())
     if groups is not None:
         df = df.merge(groups, on="roll_number", how="left", validate="one_to_one")
     return df
-
-
-# Up to 2015/16 the lists include further-education colleges and
-# Post-Leaving Certificate enrolments. From 2016/17 they do not.
-LAST_YEAR_WITH_PLC = 2015
-
-PANEL_COLUMNS = [
-    "roll_number",
-    "academic_year",
-    "school_year",
-    "name",
-    "female",
-    "male",
-    "total",
-    *dept.YEAR_GROUPS,
-    "includes_plc",
-]
-
-CHANGE_YEARS = 5
 
 
 def school_year(academic_year: int) -> str:
     return f"{academic_year}/{(academic_year + 1) % 100:02d}"
 
 
-def build_panel(sources: list[Source]) -> pd.DataFrame:
+def build_panel(level: Level, frames: list[pd.DataFrame]) -> pd.DataFrame:
     """Return enrolment for each school and year, one row for each pair."""
-    frames = [read_year(s) for s in sources]
     df = pd.concat(frames, ignore_index=True)
     df["school_year"] = df["academic_year"].map(school_year)
-    df["includes_plc"] = df["academic_year"] <= LAST_YEAR_WITH_PLC
-    for column in dept.YEAR_GROUPS:
+    if level.last_year_with_plc is not None:
+        df["includes_plc"] = df["academic_year"] <= level.last_year_with_plc
+    for column in level.groups:
         if column not in df:
             df[column] = pd.NA
         df[column] = df[column].astype("Int64")
-    df = df[PANEL_COLUMNS].sort_values(["roll_number", "academic_year"])
+    df = df[level.panel_columns()].sort_values(["roll_number", "academic_year"])
     return df.reset_index(drop=True)
 
 
@@ -110,17 +138,18 @@ def add_enrolment_change(points: pd.DataFrame, panel: pd.DataFrame) -> pd.DataFr
     return out
 
 
-def build_points(source: Source) -> gpd.GeoDataFrame:
-    df = read_year(source)
-    if df[["latitude", "longitude"]].isna().any().any():
-        missing = df.loc[df["latitude"].isna(), "roll_number"].tolist()
-        raise ValueError(f"{source.id}: schools without coordinates: {missing}")
+def to_points(df: pd.DataFrame) -> gpd.GeoDataFrame:
+    """Make points from latitude and longitude.
+
+    A school without coordinates has an empty geometry.
+    """
     df = df[[c for c in POINT_COLUMNS if c in df.columns]]
-    return gpd.GeoDataFrame(
-        df,
-        geometry=gpd.points_from_xy(df["longitude"], df["latitude"]),
-        crs=WGS84,
+    located = df["latitude"].notna() & df["longitude"].notna()
+    geometry = gpd.GeoSeries([None] * len(df), index=df.index, crs=WGS84)
+    geometry[located] = gpd.points_from_xy(
+        df.loc[located, "longitude"], df.loc[located, "latitude"], crs=WGS84
     )
+    return gpd.GeoDataFrame(df, geometry=geometry, crs=WGS84)
 
 
 def write_points(gdf: gpd.GeoDataFrame, stem: str, directory: Path) -> list[Path]:
@@ -148,17 +177,37 @@ def write_panel(panel: pd.DataFrame, stem: str, directory: Path) -> list[Path]:
     return paths
 
 
-def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
-    lists = post_primary_sources()
-    panel = build_panel(lists)
-    points = build_points(lists[-1])
+def build_level(
+    level: Level,
+    small_areas: gpd.GeoDataFrame,
+    deprivation: pd.DataFrame,
+    directory: Path,
+) -> list[Path]:
+    sources = level.sources()
+    frames = [read_year(level, s) for s in sources]
+    panel = build_panel(level, frames)
+
+    points = to_points(frames[-1])
     points = gpd.GeoDataFrame(add_enrolment_change(points, panel))
-    small_areas = enrich.read_small_areas(source_by_kind("small_areas").path())
-    deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
     points = enrich.add_small_areas(points, small_areas)
     points = gpd.GeoDataFrame(enrich.add_deprivation(points, deprivation))
-    points = enrich.add_access(points)
+    candidates = ~points["special_school"] if "special_school" in points else None
+    points = enrich.add_access(points, candidates)
+
+    unlocated = points.loc[points.geometry.isna(), "roll_number"].tolist()
+    if unlocated:
+        print(f"{level.stem}: schools without coordinates: {unlocated}")
     return [
-        *write_points(points, "post_primary_schools", directory),
-        *write_panel(panel, "post_primary_enrolment", directory),
+        *write_points(points, f"{level.stem}_schools", directory),
+        *write_panel(panel, f"{level.stem}_enrolment", directory),
     ]
+
+
+def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
+    small_areas = enrich.read_small_areas(source_by_kind("small_areas").path())
+    deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
+    paths = []
+    for level in LEVELS:
+        if level.sources():
+            paths += build_level(level, small_areas, deprivation, directory)
+    return paths
