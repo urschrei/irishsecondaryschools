@@ -10,9 +10,9 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from irish_schools import enrich, phone
+from irish_schools import phone
 from irish_schools.build import LEVELS, OUTPUT_DIR, Level, school_year
-from irish_schools.sources import ROOT, source_by_kind
+from irish_schools.sources import ROOT
 
 SITE_PUBLIC = ROOT / "site" / "public"
 
@@ -30,11 +30,6 @@ OMIT_COLUMNS = {
 COORDINATE_PRECISION = 5
 
 DOWNLOAD_SUFFIXES = {".geojson", ".parquet"}
-
-# Douglas-Peucker tolerance for the ED boundaries, in metres, and the
-# decimal places of their coordinates (4 places is approximately 10 m).
-ED_TOLERANCE_M = 50
-ED_COORDINATE_PRECISION = 4
 
 
 def _clean(value: object) -> object:
@@ -126,39 +121,6 @@ def _write_json(data: object, path: Path) -> Path:
     return path
 
 
-def deprivation_layer(
-    small_areas: gpd.GeoDataFrame, deprivation: pd.DataFrame
-) -> gpd.GeoDataFrame:
-    """Return ED boundaries with the Pobal HP Deprivation Index 2022.
-
-    The EDs are the union of their Small Areas, so they match the areas
-    that the school files use.
-    """
-    keyed = small_areas.assign(ed_key=enrich.ed_key(small_areas["ed_id"]))
-    eds = keyed.dissolve(by="ed_key", as_index=False)[["ed_key", "ed_name", "geometry"]]
-    eds["geometry"] = eds.simplify(ED_TOLERANCE_M, preserve_topology=True)
-    eds = eds.merge(deprivation, on="ed_key", how="left", validate="one_to_one")
-    unscored = eds.loc[eds["hp_relative_index"].isna(), "ed_key"].tolist()
-    if unscored:
-        raise ValueError(f"no deprivation score for EDs {unscored}")
-    columns = ["ed_name", "hp_relative_index", "hp_category", "geometry"]
-    return gpd.GeoDataFrame(eds[columns]).to_crs(4326)
-
-
-def write_deprivation_layer(path: Path) -> Path:
-    small_areas = enrich.read_small_areas(source_by_kind("small_areas").path())
-    deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
-    eds = deprivation_layer(small_areas, deprivation)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    eds.to_file(
-        path,
-        driver="GeoJSON",
-        write_bbox="NO",
-        coordinate_precision=ED_COORDINATE_PRECISION,
-    )
-    return path
-
-
 def build_site_data(
     source: Path = OUTPUT_DIR, public: Path = SITE_PUBLIC
 ) -> list[Path]:
@@ -198,5 +160,4 @@ def build_site_data(
         ),
         _write_json({"years": years, "schools": enrolment}, data / "enrolment.json"),
         _write_json(meta, data / "meta.json"),
-        write_deprivation_layer(data / "ed_deprivation.geojson"),
     ]

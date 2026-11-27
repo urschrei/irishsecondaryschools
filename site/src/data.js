@@ -2,12 +2,16 @@
 
 const DATA_PATH = './data/';
 
-export async function loadJson(name) {
-  const response = await fetch(DATA_PATH + name);
+export async function fetchJson(path) {
+  const response = await fetch(path);
   if (!response.ok) {
-    throw new Error(`Cannot load ${name}: HTTP ${response.status}`);
+    throw new Error(`Cannot load ${path}: HTTP ${response.status}`);
   }
   return response.json();
+}
+
+export function loadJson(name) {
+  return fetchJson(DATA_PATH + name);
 }
 
 // Primary schools on the special-school list are a separate category.

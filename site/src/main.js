@@ -1,5 +1,5 @@
 import { compareButton, setUpCompare } from './compare.js';
-import { loadJson, loadSchools } from './data.js';
+import { fetchJson, loadJson, loadSchools } from './data.js';
 import { downloadJson, schoolsGeoJSON } from './export.js';
 import { createDetail } from './detail.js';
 import { DEFAULT_FILTERS, activeFilterCount, matches } from './filters.js';
@@ -171,7 +171,7 @@ async function start() {
     async function showAreas(visible) {
       if (visible && !map.getSource('ed-deprivation')) areasStatus.textContent = 'Loading the areas';
       try {
-        await setAreasVisible(map, visible, () => loadJson('ed_deprivation.geojson'), areaColourExpression());
+        await setAreasVisible(map, visible, () => fetchJson('./areas/ed_deprivation.geojson'), areaColourExpression());
         areasStatus.textContent = '';
       } catch (error) {
         areasStatus.textContent = `The areas did not load. ${error.message}`;
