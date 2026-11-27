@@ -8,10 +8,10 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 
 | File | Contents |
 | --- | --- |
-| `data/primary_schools.geojson` | Point data for primary schools in the 2026/2027 school year. |
+| `data/primary_schools.geojson` | Point data for primary schools in the 2025/26 school year. |
 | `data/primary_schools.parquet` | data as GeoParquet. |
 | `data/primary_enrolment.parquet` | Enrolment for each primary school and year, 2011/12 to 2025/26. |
-| `data/post_primary_schools.geojson` | Point data for post-primary schools in the 2026/2027 school year. |
+| `data/post_primary_schools.geojson` | Point data for post-primary schools in the 2025/26 school year. |
 | `data/post_primary_schools.parquet` | data as GeoParquet. |
 | `data/post_primary_enrolment.parquet` | Enrolment for each post-primary school and year, 2011/12 to 2025/26. |
 | `irish_secondary_schools_geocoded_2022.geojson` | The 2021/22 post-primary dataset from 2022. Not updated. |
