@@ -197,3 +197,19 @@ def test_downloaded_primary_list_is_consistent(source):
     assert len(df) > 3000
     assert 100 < df["special_school"].sum() < 200
     assert (df["female"] + df["male"] == df["total"]).all()
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("CATHOLIC", "Catholic"),
+        ("Church Of Ireland", "Church of Ireland"),
+        ("CHURCH OF IRELAND", "Church of Ireland"),
+        ("MULTI DENOMINATIONAL", "Multi Denominational"),
+        ("OTHER/UNKNOWN", "Other/Unknown"),
+    ],
+)
+def test_normalise_ethos(raw, expected):
+    result = dept.normalise_ethos(pd.Series([raw, None], dtype="string"))
+    assert result.iloc[0] == expected
+    assert pd.isna(result.iloc[1])
