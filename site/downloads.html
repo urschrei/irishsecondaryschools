@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en-IE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Download the data: Irish schools</title>
+    <meta
+      name="description"
+      content="Download the Irish schools datasets as GeoJSON and GeoParquet, with checksums and licence details."
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/downloads.js"></script>
+  </head>
+  <body class="bg-panel font-sans text-ink antialiased">
+    <main class="mx-auto max-w-3xl px-5 py-8">
+      <p><a class="text-sign underline underline-offset-2" href="./">Back to the map</a></p>
+      <h1 class="mt-4 text-3xl font-bold">Download the data</h1>
+      <p class="mt-3 max-w-prose">
+        The files cover the schools aided by the Department of Education in the
+        <span data-school-year>2025/26</span> school year. They are derived from the
+        Department's school lists, with locations, enrolment history, area deprivation and
+        distances between schools.
+      </p>
+
+      <h2 class="mt-8 text-xl font-bold">Files</h2>
+      <div class="mt-3 overflow-x-auto rounded-md border border-rule bg-white">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left">
+              <th scope="col" class="px-3 py-2">File</th>
+              <th scope="col" class="px-3 py-2">Contents</th>
+              <th scope="col" class="px-3 py-2 text-right">Size</th>
+            </tr>
+          </thead>
+          <tbody id="files">
+            <tr>
+              <td colspan="3" class="px-3 py-2" id="files-status">Loading the file list</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 max-w-prose text-sm">
+        The roll number is the Department's identifier for a school. Use it to join the files
+        to each other and to other Department datasets. The map can also download the schools
+        that match a search or filters, as GeoJSON.
+      </p>
+
+      <h2 class="mt-8 text-xl font-bold">Columns and limitations</h2>
+      <p class="mt-3 max-w-prose">
+        The
+        <a
+          class="text-sign underline underline-offset-2"
+          href="https://github.com/urschrei/irishsecondaryschools#readme"
+          >README in the project repository</a
+        >
+        describes each column and the limitations of the data. You should read the limitations
+        before you compare enrolment across years or use the deprivation scores.
+      </p>
+
+      <h2 class="mt-8 text-xl font-bold">Licence and credit</h2>
+      <p class="mt-3 max-w-prose">
+        The sources are published under the Creative Commons Attribution 4.0 licence. When you
+        use the files, you should credit the Department of Education, Pobal and Tailte Éireann.
+        The project's code and its own additions to the data are dedicated to the public domain
+        under CC0.
+      </p>
+      <p class="mt-3 max-w-prose">
+        The base map is from OpenFreeMap, with data from OpenStreetMap contributors.
+      </p>
+
+      <h2 class="mt-8 text-xl font-bold">Checksums</h2>
+      <p class="mt-3 max-w-prose">
+        To check a download, compare its SHA-256 checksum with the value below. On macOS or
+        Linux, run <code class="rounded bg-white px-1">shasum -a 256</code> followed by the
+        file name.
+      </p>
+      <dl id="checksums" class="mt-3 space-y-2 text-sm"></dl>
+
+      <h2 class="mt-8 text-xl font-bold">Errors in the data</h2>
+      <p class="mt-3 max-w-prose">
+        To report an error, open an
+        <a
+          class="text-sign underline underline-offset-2"
+          href="https://github.com/urschrei/irishsecondaryschools/issues"
+          >issue</a
+        >
+        and give the roll number of the school. The Department of Education takes reports of
+        errors in its own data at
+        <a class="text-sign underline underline-offset-2" href="mailto:statistics@education.gov.ie"
+          >statistics@education.gov.ie</a
+        >.
+      </p>
+    </main>
+  </body>
+</html>
