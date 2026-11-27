@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from shapely.geometry import box
 
-from irish_schools import dept, enrich, web
+from irish_schools import areas, dept, enrich, web
 from irish_schools.build import LEVELS, OUTPUT_DIR
 
 pytestmark = pytest.mark.skipif(
@@ -92,14 +92,15 @@ def test_deprivation_layer_scores_every_ed():
             "hp_category": ["Marginally Above Average", "Disadvantaged"],
         }
     )
-    eds = web.deprivation_layer(small_areas, deprivation)
+    eds = areas.deprivation_layer(small_areas, deprivation)
     assert eds.crs.to_epsg() == 4326
     assert list(eds["ed_name"]) == ["A", "B"]
     assert eds["hp_category"].notna().all()
     assert "hp_absolute_index" not in eds
 
 
-def test_deprivation_layer_file(public):
-    eds = gpd.read_file(public / "data" / "ed_deprivation.geojson")
+@pytest.mark.skipif(not areas.AREAS_PATH.exists(), reason="run `schools build`")
+def test_deprivation_layer_file():
+    eds = gpd.read_file(areas.AREAS_PATH)
     assert len(eds) > 3000
     assert eds["hp_category"].notna().all()

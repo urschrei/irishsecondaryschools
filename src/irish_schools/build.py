@@ -7,7 +7,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from irish_schools import dept, enrich, phone
+from irish_schools import areas, dept, enrich, phone
 from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
 OUTPUT_DIR = ROOT / "data"
@@ -209,4 +209,5 @@ def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
     for level in LEVELS:
         if level.sources():
             paths += build_level(level, small_areas, deprivation, directory)
+    paths.append(areas.write_deprivation_layer(small_areas, deprivation))
     return paths
