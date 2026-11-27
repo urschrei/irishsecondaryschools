@@ -114,7 +114,7 @@ export const COLOUR_MODES = [
   {
     key: 'access',
     label: 'Distance to the nearest school',
-    note: 'Straight-line distance to the nearest school at the same level.',
+    note: 'Great-circle distance to the nearest school at the same level.',
     classify: accessClass,
     classes: [
       { value: 'lt1', label: 'Less than 1 km', colour: '#d9f0d3' },
