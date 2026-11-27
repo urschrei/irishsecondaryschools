@@ -11,14 +11,12 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 | `data/primary_schools.geojson` | Point data for primary schools in the 2026/2027 school year. |
 | `data/primary_schools.parquet` | data as GeoParquet. |
 | `data/primary_enrolment.parquet` | Enrolment for each primary school and year, 2011/12 to 2025/26. |
-| `data/post_primary_schools.geojson` | One point for each post-primary school in the latest school year. |
-| `data/post_primary_schools.parquet` | The same data as GeoParquet. |
+| `data/post_primary_schools.geojson` | Point data for post-primary schools in the 2026/2027 school year. |
+| `data/post_primary_schools.parquet` | data as GeoParquet. |
 | `data/post_primary_enrolment.parquet` | Enrolment for each post-primary school and year, 2011/12 to 2025/26. |
-| `irish_secondary_schools_geocoded_2022.geojson` | The 2021/22 post-primary dataset from 2022. It is not updated. |
+| `irish_secondary_schools_geocoded_2022.geojson` | The 2021/22 post-primary dataset from 2022. Not updated. |
 
-`roll_number` is the Department's identifier for a school. Use it to join the files to each other and to other Department datasets.
-
-The files do not contain the names or email addresses of principals or schools.
+`roll_number` is the Department's unique identifier for a school, which can be used to join the files to each other and to other Department datasets.
 
 ## Columns in the school files
 
