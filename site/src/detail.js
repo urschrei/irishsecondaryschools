@@ -187,8 +187,8 @@ export function createDetail({ byRoll, meta, loadEnrolment, onSelect, onClose, e
     if (!rows.length && !sameSite) return null;
     const note =
       school.level === 'primary'
-        ? 'Straight-line distances to other primary schools. Special schools are not counted.'
-        : 'Straight-line distances to other post-primary schools.';
+        ? 'Great-circle distances to other primary schools. Special schools are not counted.'
+        : 'Great-circle distances to other post-primary schools.';
     return h('section', {}, [
       heading('Nearby schools'),
       facts(rows),

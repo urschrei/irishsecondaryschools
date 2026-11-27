@@ -89,14 +89,32 @@ def add_deprivation(points: pd.DataFrame, deprivation: pd.DataFrame) -> pd.DataF
     return out.drop(columns="ed_key")
 
 
-ACCESS_RADIUS_M = 5_000
+ACCESS_RADIUS_KM = 5
+# Mean radius of the Earth (IUGG), in kilometres. The web viewer uses the
+# same value.
+EARTH_RADIUS_KM = 6371.0088
+WGS84 = "EPSG:4326"
 _CHUNK = 512
+
+
+def great_circle_km(
+    lon1: np.ndarray, lat1: np.ndarray, lon2: np.ndarray, lat2: np.ndarray
+) -> np.ndarray:
+    """Return great-circle distances in kilometres, with the haversine formula.
+
+    The arguments are in radians, and broadcast against each other.
+    """
+    a = (
+        np.sin((lat2 - lat1) / 2) ** 2
+        + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2
+    )
+    return 2 * EARTH_RADIUS_KM * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
 
 
 def add_access(
     points: gpd.GeoDataFrame, candidates: pd.Series | None = None
 ) -> gpd.GeoDataFrame:
-    """Add straight-line access measures between schools.
+    """Add great-circle access measures between schools.
 
     nearest_school: roll number of the nearest other candidate school.
     nearest_school_km: distance to that school.
@@ -110,10 +128,10 @@ def add_access(
     located = points.geometry.notna() & ~points.geometry.is_empty
     targets = points.index[candidates & located]
 
-    itm = points.geometry.to_crs(ITM)
-    xy = np.column_stack([itm.x, itm.y])
+    lonlat = points.geometry.to_crs(WGS84)
+    radians = np.radians(np.column_stack([lonlat.x, lonlat.y]))
     target_pos = points.index.get_indexer(targets)
-    target_xy = xy[target_pos]
+    target_rad = radians[target_pos]
     target_rolls = points["roll_number"].to_numpy()[target_pos]
 
     nearest = pd.Series(pd.NA, index=points.index, dtype="string")
@@ -124,19 +142,21 @@ def add_access(
     source_pos = points.index.get_indexer(sources)
     for start in range(0, len(sources), _CHUNK):
         rows = source_pos[start : start + _CHUNK]
-        distance = np.hypot(
-            xy[rows, 0][:, None] - target_xy[None, :, 0],
-            xy[rows, 1][:, None] - target_xy[None, :, 1],
+        distance = great_circle_km(
+            radians[rows, 0][:, None],
+            radians[rows, 1][:, None],
+            target_rad[None, :, 0],
+            target_rad[None, :, 1],
         )
         # Exclude each school by position, not by geometry: some schools
         # share coordinates.
         distance[rows[:, None] == target_pos[None, :]] = np.inf
         index = sources[start : start + _CHUNK]
-        within[index] = (distance <= ACCESS_RADIUS_M).sum(axis=1)
+        within[index] = (distance <= ACCESS_RADIUS_KM).sum(axis=1)
         # A school whose only candidate is itself has no nearest school.
         found = np.isfinite(distance.min(axis=1))
         nearest[index[found]] = target_rolls[distance[found].argmin(axis=1)]
-        nearest_km[index[found]] = (distance[found].min(axis=1) / 1000).round(2)
+        nearest_km[index[found]] = distance[found].min(axis=1).round(2)
 
     out = points.copy()
     out["nearest_school"] = nearest

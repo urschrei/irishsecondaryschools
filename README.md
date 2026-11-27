@@ -65,8 +65,8 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 | `hp_absolute_index` | Pobal HP Deprivation Index 2022, absolute score, for the ED. |
 | `hp_category` | Pobal label for the relative score. The 2022 ED values run from "Extremely Disadvantaged" to "Affluent". |
 | `nearest_school` | `roll_number` of the nearest other school at the same level. For primary schools, only mainstream schools count. |
-| `nearest_school_km` | Straight-line distance to that school, in kilometres. |
-| `schools_within_5km` | Number of other schools at the same level within 5 km in a straight line. For primary schools, only mainstream schools count. |
+| `nearest_school_km` | Great-circle distance to that school, in kilometres. |
+| `schools_within_5km` | Number of other schools at the same level within a great-circle distance of 5 km. For primary schools, only mainstream schools count. |
 
 ## Columns in the enrolment files
 
@@ -88,7 +88,7 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 - **Five-year change for new schools.** A school that opened in the last five years shows a large `change_5y_pct`. The figure does not describe growth of an established school.
 - **Deprivation describes the area.** The index applies to the ED that contains the school building. It does not describe the pupils of the school. Use `deis` for the Department's classification of the school.
 - **Generalised boundaries.** The Small Areas are generalised to 20 m. A school very near a boundary can fall in the adjacent Small Area.
-- **Straight-line distance.** The access measures do not use the road network or travel time. Junior and senior primary schools often share a campus, so many primary schools have a nearest school at 0 km.
+- **Great-circle distance.** The access measures use the great-circle distance on a sphere with the mean radius of the Earth, 6,371.0088 km. They do not use the road network or travel time. Junior and senior primary schools often share a campus, so many primary schools have a nearest school at 0 km.
 - **Temporary sites.** Some new schools operate from temporary buildings. The Department location can be the temporary site.
 - **Corrected values.** The build corrects the value "Oridinary" in the primary `school_type` to "Ordinary". It gives `ethos` values one capitalisation at both levels, for example "Church of Ireland": the post-primary lists use capitals.
 

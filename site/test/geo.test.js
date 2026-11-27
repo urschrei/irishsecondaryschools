@@ -6,7 +6,7 @@ const GALWAY = [-9.0568, 53.2707];
 
 describe('geo', () => {
   it('measures the distance from Dublin to Galway', () => {
-    expect(distanceKm(DUBLIN, GALWAY)).toBeCloseTo(186.4, 0);
+    expect(distanceKm(DUBLIN, GALWAY)).toBeCloseTo(186.0, 1);
     expect(distanceKm(DUBLIN, DUBLIN)).toBe(0);
   });
 
