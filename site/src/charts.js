@@ -30,9 +30,10 @@ const HEIGHT = 150;
 const MARGIN = { top: 10, right: 12, bottom: 22, left: 40 };
 
 // Line chart of total enrolment by year. plcUntil is the last year whose
-// figures include further-education and PLC students, or null.
-export function enrolmentChart(years, totals, plcUntil) {
-  const top = niceCeiling(Math.max(...totals.filter((v) => v !== null)));
+// figures include further-education and PLC students, or null. Charts
+// that are compared can share a maximum, so that their scales agree.
+export function enrolmentChart(years, totals, plcUntil, maximum = null) {
+  const top = niceCeiling(maximum ?? Math.max(...totals.filter((v) => v !== null)));
   const innerW = WIDTH - MARGIN.left - MARGIN.right;
   const innerH = HEIGHT - MARGIN.top - MARGIN.bottom;
   const x = (i) => MARGIN.left + (innerW * i) / (years.length - 1);

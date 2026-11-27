@@ -91,6 +91,15 @@
         </section>
         </div>
         <section id="detail" class="px-5 py-4" aria-labelledby="detail-name" hidden></section>
+        <div
+          id="compare-bar"
+          class="sticky bottom-0 flex flex-wrap items-center gap-2 border-t border-rule bg-white px-5 py-3"
+          hidden
+        >
+          <p id="compare-summary" class="grow text-sm font-bold"></p>
+          <button id="compare-open" type="button" class="button">Compare</button>
+          <button id="compare-clear" type="button" class="button">Clear</button>
+        </div>
       </main>
       <div class="relative order-1 md:order-2">
         <div id="map" class="h-full w-full" role="region" aria-label="Map of schools"></div>
@@ -115,5 +124,16 @@
         </details>
       </div>
     </div>
+    <dialog
+      id="compare-dialog"
+      aria-labelledby="compare-heading"
+      class="m-auto max-h-[90dvh] w-[min(64rem,calc(100%-2rem))] rounded-md border border-rule p-0 text-ink backdrop:bg-ink/40"
+    >
+      <div class="sticky top-0 flex items-center justify-between border-b border-rule bg-white px-5 py-3">
+        <h2 id="compare-heading" class="text-lg font-bold">Compare schools</h2>
+        <button id="compare-close" type="button" class="button">Close</button>
+      </div>
+      <div id="compare-body" class="overflow-x-auto px-2 py-3"></div>
+    </dialog>
   </body>
 </html>
