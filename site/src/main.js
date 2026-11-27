@@ -5,7 +5,9 @@ import { createDetail } from './detail.js';
 import { DEFAULT_FILTERS, activeFilterCount, matches } from './filters.js';
 import { setUpFilters } from './filters-ui.js';
 import { byName, decimal, number } from './labels.js';
-import { renderLegend, setUpLegend } from './legend.js';
+import { renderLegend, setUpLegend, syncAreas } from './legend.js';
+import { titleCase } from './detail.js';
+import { h } from './dom.js';
 import { createList } from './list.js';
 import {
   addNear,
@@ -14,14 +16,23 @@ import {
   createMap,
   fitSchools,
   mapLoaded,
+  onAreaClick,
   onSchoolClick,
   schoolCollection,
+  setAreasVisible,
   setNear,
   setSchoolStyle,
   setSelection,
   showSchools,
 } from './map.js';
-import { MODES_BY_KEY, classValues, colourExpression, radiusExpression } from './modes.js';
+import {
+  HP_CLASSES,
+  MODES_BY_KEY,
+  areaColourExpression,
+  classValues,
+  colourExpression,
+  radiusExpression,
+} from './modes.js';
 import { schoolsNear } from './near.js';
 import { setUpNear } from './near-ui.js';
 import { createSearch } from './search.js';
@@ -149,6 +160,23 @@ async function start() {
 
     let previousSchool = null;
     let visible = schools;
+    const hpLabels = Object.fromEntries(HP_CLASSES.map((c) => [c.value, c.label]));
+    onAreaClick(map, (area) =>
+      h('div', { class: 'text-sm' }, [
+        h('p', { class: 'font-bold', text: titleCase(area.ed_name) }),
+        h('p', { text: `${hpLabels[area.hp_category] ?? area.hp_category}, relative score ${decimal.format(area.hp_relative_index)}` }),
+      ]),
+    );
+    const areasStatus = document.getElementById('areas-status');
+    async function showAreas(visible) {
+      if (visible && !map.getSource('ed-deprivation')) areasStatus.textContent = 'Loading the areas';
+      try {
+        await setAreasVisible(map, visible, () => loadJson('ed_deprivation.geojson'), areaColourExpression());
+        areasStatus.textContent = '';
+      } catch (error) {
+        areasStatus.textContent = `The areas did not load. ${error.message}`;
+      }
+    }
     const exportButton = document.getElementById('export-geojson');
     exportButton.addEventListener('click', () => {
       downloadJson(schoolsGeoJSON(visible), 'irish_schools_selection.geojson');
@@ -189,6 +217,10 @@ async function start() {
       }
       if (selectionChanged || changed.has('colour')) renderLegend(mode, visible);
       if (changed.has('initial') || changed.has('compare')) syncCompare(state);
+      if (changed.has('initial') || changed.has('deprivationLayer')) {
+        syncAreas(state);
+        showAreas(state.deprivationLayer);
+      }
       if (changed.has('school') || (changed.has('initial') && state.school)) {
         showDetail(state, previousSchool);
         previousSchool = state.school;

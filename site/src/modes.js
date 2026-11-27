@@ -163,3 +163,8 @@ export function radiusExpression(sizeByEnrolment) {
   const scaled = (factor, minimum) => ['max', minimum, ['*', factor, ['sqrt', ['get', 'total']]]];
   return ['interpolate', ['linear'], ['zoom'], 6, scaled(0.11, 1.5), 10, scaled(0.25, 2.5), 14, scaled(0.45, 3)];
 }
+
+// Fill colour for the Electoral Division layer, by Pobal category.
+export function areaColourExpression() {
+  return ['match', ['get', 'hp_category'], ...HP_CLASSES.flatMap((c) => [c.value, c.colour]), NEUTRAL];
+}

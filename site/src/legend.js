@@ -1,4 +1,4 @@
-import { COLOUR_MODES, classCounts } from './modes.js';
+import { COLOUR_MODES, HP_CLASSES, classCounts } from './modes.js';
 
 const number = new Intl.NumberFormat('en-IE');
 
@@ -14,8 +14,31 @@ export function setUpLegend(store) {
   size.checked = store.get().sizeByEnrolment;
   size.addEventListener('change', () => store.set({ sizeByEnrolment: size.checked }));
 
+  const areas = document.getElementById('areas-layer');
+  areas.checked = store.get().deprivationLayer;
+  areas.addEventListener('change', () => store.set({ deprivationLayer: areas.checked }));
+  // The 2022 values have no "affluent" category above Affluent.
+  const shown = HP_CLASSES.filter((c) => !c.value.endsWith(' Affluent') || c.value === 'Affluent');
+  document.getElementById('areas-classes').replaceChildren(
+    ...shown.map((c) => {
+      const item = document.createElement('li');
+      item.className = 'flex items-center gap-2';
+      const swatch = document.createElement('span');
+      swatch.className = 'inline-block h-3.5 w-5 shrink-0 border border-ink/30';
+      swatch.style.backgroundColor = c.colour;
+      swatch.style.opacity = '0.75';
+      item.append(swatch, c.label);
+      return item;
+    }),
+  );
+
   const details = document.getElementById('legend');
-  details.open = window.matchMedia('(min-width: 48rem)').matches;
+  details.open = window.matchMedia('(min-width: 48rem)').matches || store.get().deprivationLayer;
+}
+
+export function syncAreas(state) {
+  document.getElementById('areas-layer').checked = state.deprivationLayer;
+  document.getElementById('areas-key').hidden = !state.deprivationLayer;
 }
 
 // Show the classes of a mode with the number of schools in each.
