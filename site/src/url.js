@@ -7,6 +7,8 @@ export const DEFAULT_VIEW = {
   sizeByEnrolment: false,
   school: null,
   near: null,
+  // Text for the chosen point, such as "your location". Not kept in the URL.
+  nearLabel: null,
   radius: 5,
   compare: [],
   deprivationLayer: false,

@@ -191,3 +191,50 @@ export function onSchoolClick(map, onSelect, nameOf) {
   });
   map.on('movestart', () => popup.remove());
 }
+
+const NEAR_SOURCE = 'near';
+
+export function addNear(map) {
+  map.addSource(NEAR_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer(
+    {
+      id: 'near-ring',
+      type: 'line',
+      source: NEAR_SOURCE,
+      filter: ['==', ['geometry-type'], 'Polygon'],
+      paint: { 'line-color': '#00663e', 'line-width': 2 },
+    },
+    SCHOOLS_LAYER,
+  );
+  map.addLayer(
+    {
+      id: 'near-centre',
+      type: 'circle',
+      source: NEAR_SOURCE,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: {
+        'circle-radius': 5,
+        'circle-color': '#00663e',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+      },
+    },
+    SCHOOLS_LAYER,
+  );
+}
+
+export function setNear(map, point, radiusKm) {
+  const features = point
+    ? [
+        { type: 'Feature', properties: {}, geometry: circle(point, radiusKm) },
+        { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: point } },
+      ]
+    : [];
+  map.getSource(NEAR_SOURCE).setData({ type: 'FeatureCollection', features });
+  if (point) {
+    const ring = features[0].geometry.coordinates[0];
+    const bounds = new LngLatBounds(ring[0], ring[0]);
+    for (const vertex of ring) bounds.extend(vertex);
+    map.fitBounds(bounds, { padding: 32 });
+  }
+}
