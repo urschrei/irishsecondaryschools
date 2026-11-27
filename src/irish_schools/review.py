@@ -216,6 +216,9 @@ def _capitals(word: str, first: bool) -> str | None:
             return None
         return word.capitalize()
     lower = word.lower()
+    # "de" and "De" are both usual: "Vincent de Paul", "De La Salle".
+    if lower == "de" and not first:
+        return None
     if word[0].islower():
         if first or (lower not in _MINOR_WORDS and not _PREFIXED.match(word)):
             return word[0].upper() + word[1:]

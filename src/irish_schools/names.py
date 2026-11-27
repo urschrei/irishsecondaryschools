@@ -121,13 +121,21 @@ def _case_word(word: str, previous: str | None, following: str | None) -> str:
     return word[:prefix].lower() + _capitalise(word[prefix:])
 
 
+# Short words that a mixed-case name sometimes capitalises after the
+# first word: "Coláiste Na Sionna", "Cork College Of Commerce". "Gan"
+# is not in this set, because "Muire Gan Smál" is also usual.
+_MIXED_MINOR_WORDS = re.compile(r"(?<=\S\s)(?:Agus|An|And|Na|Of|The)(?=\s)")
+
+
 def normalise_name(name: str) -> str:
     """Return a school name in its standard capitalisation.
 
-    A name that contains a lower-case letter is returned unchanged.
+    A comma at the end of the name is removed. In a name that contains a
+    lower-case letter, only the short words in _MIXED_MINOR_WORDS change.
     """
+    name = re.sub(r"\s*,\s*$", "", name)
     if name != name.upper():
-        return name
+        return _MIXED_MINOR_WORDS.sub(lambda m: m.group().lower(), name)
     matches = list(_WORD.finditer(name))
     parts = []
     end = 0
@@ -169,13 +177,15 @@ def bare(word: str) -> str:
 class Spellings:
     """The tables in spellings.toml.
 
-    words maps a bare word to its correct spelling. suspects maps a bare
-    word that is possibly spelled incorrectly to a possible correct
+    words maps a bare word to its correct spelling. phrases maps bare
+    words, separated by spaces, to their correct form. suspects maps a
+    bare word that is possibly spelled incorrectly to a possible correct
     spelling. schools maps a roll number to the correct name of that
     school.
     """
 
     words: dict[str, str] = field(default_factory=dict)
+    phrases: dict[str, str] = field(default_factory=dict)
     suspects: dict[str, str] = field(default_factory=dict)
     schools: dict[str, str] = field(default_factory=dict)
 
@@ -185,6 +195,7 @@ def load_spellings(path: Path = SPELLINGS) -> Spellings:
         data = tomllib.load(f)
     spellings = Spellings(
         words=data.get("words", {}),
+        phrases=data.get("phrases", {}),
         suspects=data.get("suspects", {}),
         schools=data.get("schools", {}),
     )
@@ -192,6 +203,9 @@ def load_spellings(path: Path = SPELLINGS) -> Spellings:
         for key in getattr(spellings, table):
             if key != bare(key):
                 raise ValueError(f"{path}: [{table}] key {key!r} is not a bare word")
+    for key in spellings.phrases:
+        if key != bare(key) or len(key.split()) < 2:
+            raise ValueError(f"{path}: [phrases] key {key!r} is not bare words")
     both = spellings.words.keys() & spellings.suspects.keys()
     if both:
         raise ValueError(f"{path}: words in [words] and [suspects]: {sorted(both)}")
@@ -201,8 +215,11 @@ def load_spellings(path: Path = SPELLINGS) -> Spellings:
     return spellings
 
 
-def respell(name: str, words: dict[str, str]) -> str:
-    """Replace each word in a name that has an entry in words.
+def respell(
+    name: str, words: dict[str, str], phrases: dict[str, str] | None = None
+) -> str:
+    """Replace each word in a name that has an entry in words, then each
+    group of words that has an entry in phrases.
 
     A word in capital letters gets the replacement in capital letters.
     """
@@ -216,4 +233,9 @@ def respell(name: str, words: dict[str, str]) -> str:
             return spelling.upper()
         return spelling
 
-    return _SPELLED_WORD.sub(replace, name)
+    name = _SPELLED_WORD.sub(replace, name)
+    for key, spelling in (phrases or {}).items():
+        words_pattern = r"\s+".join(re.escape(word) for word in key.split())
+        pattern = rf"(?<![\w'’]){words_pattern}(?![\w'’])"
+        name = re.sub(pattern, spelling, name, flags=re.IGNORECASE)
+    return name

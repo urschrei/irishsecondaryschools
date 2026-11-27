@@ -38,6 +38,8 @@ SUSPECTS = {"rath": "Ráth", "mor": "Mór"}
         ("Colaiste Na Sionna", [Issue(CAPITALS, "Na", "na")]),
         ("Scoil na nGael", []),
         ("St Fachtna's De La Salle", []),
+        ("St Vincent de Paul Senior School", []),
+        ("Gaelscoil de hÍde", []),
         ("Dookinella  N.S.", [Issue(PUNCTUATION, "  ", " ")]),
         ("Coole N.S,", [Issue(PUNCTUATION, ",", "")]),
         ("Scoil C.Uí Dhálaigh", [Issue(PUNCTUATION, ".", ". ")]),

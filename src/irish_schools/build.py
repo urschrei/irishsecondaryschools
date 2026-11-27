@@ -123,7 +123,8 @@ def apply_spellings(
     for df in frames:
         df = df.copy()
         df["name"] = df["name"].map(
-            lambda name: names.respell(name, spellings.words), na_action="ignore"
+            lambda name: names.respell(name, spellings.words, spellings.phrases),
+            na_action="ignore",
         )
         out.append(df)
 
