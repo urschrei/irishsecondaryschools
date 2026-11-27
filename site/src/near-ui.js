@@ -19,7 +19,7 @@ export function setUpNear(store, map) {
 
   document.getElementById('near-me').addEventListener('click', () => {
     if (!navigator.geolocation) {
-      message = 'This browser cannot give your location. Use the centre of the map.';
+      message = 'This browser cannot give your location. Use the map centre instead.';
       status.textContent = message;
       return;
     }
@@ -29,8 +29,8 @@ export function setUpNear(store, map) {
       (error) => {
         message =
           error.code === error.PERMISSION_DENIED
-            ? 'The browser did not give your location. Allow location access, or use the centre of the map.'
-            : 'Your location is not available. Use the centre of the map.';
+            ? 'The browser did not give your location. Allow location access, or use the map centre.'
+            : 'Your location is not available. Use the map centre instead.';
         status.textContent = message;
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
@@ -38,7 +38,7 @@ export function setUpNear(store, map) {
   });
   document.getElementById('near-centre').addEventListener('click', () => {
     const centre = map.getCenter();
-    choose([centre.lng, centre.lat], 'the centre of the map');
+    choose([centre.lng, centre.lat], 'the map centre');
   });
   radius.addEventListener('change', () => store.set({ radius: Number(radius.value) }));
   clear.addEventListener('click', () => store.set({ near: null, nearLabel: null }));
@@ -48,7 +48,7 @@ export function setUpNear(store, map) {
     clear.hidden = !state.near;
     if (state.near) {
       const label = state.nearLabel ?? 'the chosen point';
-      status.textContent = `Showing ${count} ${count === 1 ? 'school' : 'schools'} within ${state.radius} km of ${label}, nearest first.`;
+      status.textContent = `${count} ${count === 1 ? 'school' : 'schools'} within ${state.radius} km of ${label}, listed by distance.`;
     } else {
       status.textContent = message;
     }
