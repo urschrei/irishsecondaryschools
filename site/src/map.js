@@ -45,7 +45,7 @@ export function schoolCollection(schools, properties) {
   };
 }
 
-export function addSchools(map, collection, colour) {
+export function addSchools(map, collection, colour, radius) {
   map.addSource(SCHOOLS_SOURCE, {
     type: 'geojson',
     data: collection,
@@ -55,11 +55,19 @@ export function addSchools(map, collection, colour) {
     id: SCHOOLS_LAYER,
     type: 'circle',
     source: SCHOOLS_SOURCE,
+    // Draw small schools above large ones.
+    layout: { 'circle-sort-key': ['-', ['get', 'total']] },
     paint: {
       'circle-color': colour,
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 2.5, 10, 5, 14, 8],
-      'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 0.5, 12, 1.25],
+      'circle-radius': radius,
+      // A dark outline keeps pale classes visible on the light basemap.
+      'circle-stroke-color': 'rgba(23, 33, 43, 0.6)',
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 6, 0.4, 12, 1],
     },
   });
+}
+
+export function setSchoolStyle(map, colour, radius) {
+  map.setPaintProperty(SCHOOLS_LAYER, 'circle-color', colour);
+  map.setPaintProperty(SCHOOLS_LAYER, 'circle-radius', radius);
 }

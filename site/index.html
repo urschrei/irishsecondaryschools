@@ -39,6 +39,25 @@
       </main>
       <div class="relative order-1 md:order-2">
         <div id="map" class="h-full w-full" role="region" aria-label="Map of schools"></div>
+        <details
+          id="legend"
+          class="absolute bottom-9 left-2 z-10 w-72 max-w-[calc(100%-1rem)] rounded-md border border-rule bg-white/95 text-sm shadow-sm"
+        >
+          <summary class="cursor-pointer px-3 py-2 font-bold">Key</summary>
+          <div class="space-y-2 px-3 pb-3">
+            <label for="colour-mode" class="block text-muted">Colour by</label>
+            <select
+              id="colour-mode"
+              class="w-full rounded border border-rule bg-white px-2 py-1.5"
+            ></select>
+            <ul id="legend-classes" class="space-y-1"></ul>
+            <p id="legend-note" class="text-xs text-muted" hidden></p>
+            <label class="flex items-center gap-2 pt-1">
+              <input id="size-mode" type="checkbox" class="size-4 accent-sign" />
+              Size by enrolment
+            </label>
+          </div>
+        </details>
       </div>
     </div>
   </body>
