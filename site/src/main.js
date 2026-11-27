@@ -198,7 +198,10 @@ async function start() {
         visible = selected.visible;
         showSchools(map, visible.length === schools.length ? null : visible.map((s) => s.roll_number));
         const { distances } = selected;
-        list.update(visible, distances ? (school) => `${decimal.format(distances.get(school.roll_number))} km` : undefined);
+        list.update(visible, {
+          describeSchool: distances ? (school) => `${decimal.format(distances.get(school.roll_number))} km` : undefined,
+          isNarrowed: Boolean(selected.found || state.near || activeFilterCount(state) > 0),
+        });
         syncNear(state, visible.length);
         exportButton.hidden = visible.length === 0;
         exportButton.textContent =
