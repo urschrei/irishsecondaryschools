@@ -35,6 +35,14 @@ export function createList(onSelect) {
   }
 
   function render() {
+    if (!schools.length) {
+      const empty = document.createElement('li');
+      empty.className = 'px-5 py-3 text-muted';
+      empty.textContent = 'No schools match the search and filters. Change the search, or clear the filters.';
+      list.replaceChildren(empty);
+      more.hidden = true;
+      return;
+    }
     list.replaceChildren(...schools.slice(0, shown).map(item));
     const remaining = schools.length - shown;
     more.hidden = remaining <= 0;
