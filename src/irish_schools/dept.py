@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from irish_schools.names import normalise_name
+
 # Columns that identify people or give personal contact details. The
 # build never writes them. School telephone numbers are not in this set.
 PERSONAL_COLUMNS = {"principal_name", "email"}
@@ -303,6 +305,8 @@ def _read_sheet(
             df[column] = df[column].replace(fixes)
     if "ethos" in df:
         df["ethos"] = normalise_ethos(df["ethos"])
+    if "name" in df:
+        df["name"] = df["name"].map(normalise_name, na_action="ignore")
 
     if df["roll_number"].duplicated().any():
         dupes = df.loc[df["roll_number"].duplicated(), "roll_number"].tolist()
