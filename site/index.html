@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-IE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Irish schools map</title>
+    <meta
+      name="description"
+      content="Map of the primary and post-primary schools aided by the Department of Education, with enrolment, area deprivation and distance to the nearest school."
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body class="font-sans text-ink antialiased">
+    <a
+      href="#panel"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:bg-white focus:px-3 focus:py-2"
+      >Skip to the school list</a
+    >
+    <div
+      class="grid h-dvh grid-rows-[45dvh_minmax(0,1fr)] md:grid-cols-[26rem_minmax(0,1fr)] md:grid-rows-1"
+    >
+      <main
+        id="panel"
+        tabindex="-1"
+        class="order-2 overflow-y-auto border-rule bg-panel md:order-1 md:border-r"
+      >
+        <header class="border-b border-rule px-5 pt-5 pb-4">
+          <h1 class="text-2xl font-bold">Irish schools</h1>
+          <p class="mt-1 text-sm text-muted">
+            Schools aided by the Department of Education,
+            <span data-school-year>2025/26</span>.
+            <a class="text-sign underline underline-offset-2" href="downloads.html"
+              >Download the data</a
+            >
+          </p>
+        </header>
+        <p id="status" class="px-5 py-3 text-sm" role="status">Loading schools</p>
+      </main>
+      <div class="relative order-1 md:order-2">
+        <div id="map" class="h-full w-full" role="region" aria-label="Map of schools"></div>
+      </div>
+    </div>
+  </body>
+</html>

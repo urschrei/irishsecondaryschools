@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@import "@fontsource/atkinson-hyperlegible-next/400.css";
+@import "@fontsource/atkinson-hyperlegible-next/700.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --color-ink: #17212b;
+  --color-panel: #eef2f1;
+  --color-rule: #c3cecb;
+  --color-muted: #475655;
+  --color-sign: #00663e;
+  --color-sign-dark: #004d2e;
+  --color-warn: #f2c200;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-sign);
+    outline-offset: 2px;
+  }
+
+  .maplibregl-canvas:focus-visible {
+    outline-offset: -3px;
+  }
+}
