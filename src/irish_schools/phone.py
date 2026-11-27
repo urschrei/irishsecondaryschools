@@ -54,3 +54,16 @@ def normalise_phones(values: pd.Series) -> tuple[pd.Series, list[str]]:
     normalised = present.map(normalise_phone)
     invalid = present[normalised.isna()].tolist()
     return normalised.reindex(values.index).astype("string"), invalid
+
+
+def national_format(e164: str) -> str:
+    """Return E.164 numbers, joined with ";", in national form, for display.
+
+    For example, "+35318411594" becomes "(01) 841 1594".
+    """
+    return "; ".join(
+        phonenumbers.format_number(
+            phonenumbers.parse(number, "IE"), phonenumbers.PhoneNumberFormat.NATIONAL
+        )
+        for number in e164.split(";")
+    )
