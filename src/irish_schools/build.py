@@ -5,8 +5,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from irish_schools import dept
-from irish_schools.sources import ROOT, Source, load_manifest
+from irish_schools import dept, enrich
+from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
 OUTPUT_DIR = ROOT / "data"
 WGS84 = "EPSG:4326"
@@ -150,6 +150,10 @@ def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
     panel = build_panel(lists)
     points = build_points(lists[-1])
     points = gpd.GeoDataFrame(add_enrolment_change(points, panel))
+    small_areas = enrich.read_small_areas(source_by_kind("small_areas").path())
+    deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
+    points = enrich.add_small_areas(points, small_areas)
+    points = gpd.GeoDataFrame(enrich.add_deprivation(points, deprivation))
     return [
         *write_points(points, "post_primary_schools", directory),
         *write_panel(panel, "post_primary_enrolment", directory),

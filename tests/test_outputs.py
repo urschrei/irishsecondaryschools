@@ -63,3 +63,8 @@ def test_panel_flags_plc_years(panel):
 def test_points_match_latest_panel_year(points, panel):
     latest = panel[panel["academic_year"] == panel["academic_year"].max()]
     assert set(latest["roll_number"]) == set(points["roll_number"])
+
+
+def test_every_school_has_area_and_deprivation(points):
+    for column in ("small_area", "ed_id", "hp_relative_index", "hp_category"):
+        assert points[column].notna().all(), column

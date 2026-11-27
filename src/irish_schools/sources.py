@@ -46,6 +46,14 @@ def load_manifest(path: Path = MANIFEST) -> list[Source]:
     return [Source(**entry) for entry in data["source"]]
 
 
+def source_by_kind(kind: str) -> Source:
+    """Return the one source of this kind."""
+    matches = [s for s in load_manifest() if s.kind == kind]
+    if len(matches) != 1:
+        raise ValueError(f"expected one source of kind {kind!r}, found {len(matches)}")
+    return matches[0]
+
+
 def sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as f:
