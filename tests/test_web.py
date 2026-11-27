@@ -3,9 +3,11 @@
 import json
 
 import geopandas as gpd
+import pandas as pd
 import pytest
+from shapely.geometry import box
 
-from irish_schools import dept, web
+from irish_schools import dept, enrich, web
 from irish_schools.build import LEVELS, OUTPUT_DIR
 
 pytestmark = pytest.mark.skipif(
@@ -71,3 +73,33 @@ def test_downloads_match_their_checksums(public):
         path = public / "downloads" / download["file"]
         assert path.stat().st_size == download["bytes"]
         assert web.sha256(path) == download["sha256"]
+
+
+def test_deprivation_layer_scores_every_ed():
+    small_areas = gpd.GeoDataFrame(
+        {
+            "ed_id": ["01001", "01001", "02002"],
+            "ed_name": ["A", "A", "B"],
+        },
+        geometry=[box(0, 0, 1000, 1000), box(1000, 0, 2000, 1000), box(0, 0, 5, 5)],
+        crs=enrich.ITM,
+    )
+    deprivation = pd.DataFrame(
+        {
+            "ed_key": ["1001", "2002"],
+            "hp_relative_index": [1.5, -12.0],
+            "hp_absolute_index": [2.0, -10.0],
+            "hp_category": ["Marginally Above Average", "Disadvantaged"],
+        }
+    )
+    eds = web.deprivation_layer(small_areas, deprivation)
+    assert eds.crs.to_epsg() == 4326
+    assert list(eds["ed_name"]) == ["A", "B"]
+    assert eds["hp_category"].notna().all()
+    assert "hp_absolute_index" not in eds
+
+
+def test_deprivation_layer_file(public):
+    eds = gpd.read_file(public / "data" / "ed_deprivation.geojson")
+    assert len(eds) > 3000
+    assert eds["hp_category"].notna().all()
