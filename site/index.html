@@ -51,6 +51,23 @@
             />
           </form>
         </section>
+        <section class="border-b border-rule px-5 py-4" aria-labelledby="near-heading">
+          <h2 id="near-heading" class="font-bold">Schools near a place</h2>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button id="near-me" type="button" class="button">Use my location</button>
+            <button id="near-centre" type="button" class="button">
+              Use the centre of the map
+            </button>
+          </div>
+          <div class="mt-3 flex items-center gap-2">
+            <label for="near-radius" class="text-sm text-muted">Distance</label>
+            <select id="near-radius" class="rounded border border-rule bg-white px-2 py-1.5"></select>
+          </div>
+          <p id="near-status" class="mt-2 text-sm" role="status"></p>
+          <button id="near-clear" type="button" class="button mt-2" hidden>
+            Show schools everywhere
+          </button>
+        </section>
         <details id="filters" class="border-b border-rule">
           <summary class="cursor-pointer px-5 py-3 font-bold">
             Filters <span id="filter-count" class="font-normal text-muted"></span>
@@ -67,7 +84,7 @@
             <button
               id="show-more"
               type="button"
-              class="rounded border border-sign px-3 py-1.5 text-sign hover:bg-white"
+              class="button"
               hidden
             ></button>
           </div>

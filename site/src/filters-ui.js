@@ -95,7 +95,7 @@ function buildForm(form, options) {
 
   const reset = element('button', {
     type: 'reset',
-    class: 'rounded border border-sign px-3 py-1.5 text-sign hover:bg-white',
+    class: 'button',
     text: 'Clear filters',
   });
 
