@@ -5,3 +5,8 @@ __pycache__/
 .DS_Store
 # Downloaded source files. sources.toml records their URLs and checksums.
 sources/
+# Web viewer. `schools web` writes site/public/data and site/public/downloads.
+site/node_modules/
+site/dist/
+site/public/data/
+site/public/downloads/
