@@ -32,7 +32,7 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 | --- | --- | --- |
 | `roll_number` | Both | Department roll number, for example `60010P`. |
 | `academic_year` | Both | First calendar year of the school year. `2025` is 2025/26. |
-| `name` | Both | Official school name. |
+| `name` | Both | Official school name. Names that the Department gives in capital letters are converted to mixed case, for example `S N NA NGAEL` to `S N na nGael`. |
 | `address_1` to `address_4` | Both | Postal address. |
 | `eircode` | Both | Eircode. |
 | `phone` | Both | School telephone number in E.164 form, for example `+35318411594`. Where a school has more than one number, they are separated by `;`. |
