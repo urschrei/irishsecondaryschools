@@ -157,7 +157,7 @@ def test_read_primary_list(tmp_path):
     path = tmp_path / "primary.xlsx"
     write_primary_workbook(
         path,
-        mainstream=[primary_row("00359V", "Mainstream NS", 10, 5)],
+        mainstream=[primary_row("00359V", "S N NA NGAEL", 10, 5)],
         special=[primary_row("17890H", "Special School", 3, 4)],
         classes=[
             {
@@ -171,6 +171,7 @@ def test_read_primary_list(tmp_path):
     df = dept.drop_personal_columns(dept.read_primary_list(path, 2025))
     assert df["roll_number"].tolist() == ["00359V", "17890H"]
     assert df["special_school"].tolist() == [False, True]
+    assert df["name"].tolist() == ["S N na nGael", "Special School"]
     assert df["total"].tolist() == [15, 7]
     assert df["gaeltacht"].tolist() == [False, False]
     assert df["school_type"].tolist() == ["Ordinary", "Ordinary"]
