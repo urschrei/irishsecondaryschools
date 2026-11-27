@@ -29,7 +29,7 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 | `name` | Both | Official school name. |
 | `address_1` to `address_4` | Both | Postal address. |
 | `eircode` | Both | Eircode. |
-| `phone` | Both | School telephone number, as given by the Department. Formats vary. |
+| `phone` | Both | School telephone number in E.164 form, for example `+35318411594`. Where a school has more than one number, they are separated by `;`. |
 | `county`, `local_authority` | Both | County and local authority. |
 | `planning_area` | Both | Department school planning area. |
 | `special_school` | Primary | `true` for schools on the Department's list of special schools. |

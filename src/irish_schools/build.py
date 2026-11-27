@@ -7,7 +7,7 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from irish_schools import dept, enrich
+from irish_schools import dept, enrich, phone
 from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
 OUTPUT_DIR = ROOT / "data"
@@ -144,7 +144,11 @@ def to_points(df: pd.DataFrame) -> gpd.GeoDataFrame:
 
     A school without coordinates has an empty geometry.
     """
-    df = df[[c for c in POINT_COLUMNS if c in df.columns]]
+    df = df[[c for c in POINT_COLUMNS if c in df.columns]].copy()
+    if "phone" in df:
+        df["phone"], invalid = phone.normalise_phones(df["phone"])
+        if invalid:
+            print(f"telephone numbers that are not valid: {invalid}")
     located = df["latitude"].notna() & df["longitude"].notna()
     geometry = gpd.GeoSeries([None] * len(df), index=df.index, crs=WGS84)
     geometry[located] = gpd.points_from_xy(

@@ -98,3 +98,8 @@ def test_post_primary_panel_flags_plc_years(level):
     panel = panel_of(level)
     flagged = panel.loc[panel["includes_plc"], "academic_year"]
     assert flagged.max() == level.last_year_with_plc
+
+
+def test_phone_numbers_are_e164(level):
+    phones = points_of(level)["phone"].dropna()
+    assert phones.str.fullmatch(r"\+353\d{7,9}(;\+353\d{7,9})*").all()
