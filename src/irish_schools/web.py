@@ -10,7 +10,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from irish_schools import enrich
+from irish_schools import enrich, phone
 from irish_schools.build import LEVELS, OUTPUT_DIR, Level, school_year
 from irish_schools.sources import ROOT, source_by_kind
 
@@ -59,6 +59,10 @@ def school_features(level: Level, points: gpd.GeoDataFrame, panel: pd.DataFrame)
             value = _clean(values[column])
             if value is not None:
                 properties[column] = value
+        if "phone" in properties:
+            properties["phone_display"] = phone.national_format(
+                str(properties["phone"])
+            )
         properties["first_listed"] = int(first_listed[values["roll_number"]])
         geom = values["geometry"]
         geometry = None

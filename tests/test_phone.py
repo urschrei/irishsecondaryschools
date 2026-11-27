@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from irish_schools.phone import normalise_phone, normalise_phones
+from irish_schools.phone import national_format, normalise_phone, normalise_phones
 
 
 @pytest.mark.parametrize(
@@ -33,3 +33,10 @@ def test_normalise_phones_reports_invalid():
     assert normalised.tolist()[0] == "+35318411594"
     assert normalised.isna().tolist() == [False, True, True]
     assert invalid == ["123"]
+
+
+def test_national_format():
+    assert national_format("+35318411594") == "(01) 841 1594"
+    assert national_format("+35318411594;+353872345678") == (
+        "(01) 841 1594; 087 234 5678"
+    )
