@@ -1,0 +1,58 @@
+# Build the web viewer from the committed datasets and publish it to
+# GitHub Pages. The source files are not downloaded: `schools web` reads
+# data/, and the area layer is in site/public/areas/.
+name: Publish the viewer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - name: Check the datasets
+        run: |
+          uv sync --locked
+          uv run pytest tests/test_outputs.py tests/test_web.py
+      - name: Write the viewer data
+        run: uv run schools web
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Lint, test and build the site
+        working-directory: site
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
