@@ -1,3 +1,4 @@
+import { compareButton, setUpCompare } from './compare.js';
 import { loadJson, loadSchools } from './data.js';
 import { createDetail } from './detail.js';
 import { DEFAULT_FILTERS, activeFilterCount, matches } from './filters.js';
@@ -79,6 +80,9 @@ async function start() {
       node.textContent = meta.school_year;
     }
     const search = createSearch(schools);
+    // Drop roll numbers from the URL that are not in the data.
+    store.set({ compare: store.get().compare.filter((roll) => byRoll.has(roll)) });
+    if (store.get().school && !byRoll.has(store.get().school)) store.set({ school: null });
     const collection = schoolCollection(schools, (school) => ({
       total: school.total,
       ...classValues(school),
@@ -98,13 +102,16 @@ async function start() {
     const list = createList(select);
 
     let enrolment;
+    const loadEnrolment = () => (enrolment ??= loadJson('enrolment.json'));
+    const syncCompare = setUpCompare(store, { byRoll, meta, loadEnrolment, onSelect: select });
     const detail = createDetail({
       byRoll,
       meta,
-      loadEnrolment: () => (enrolment ??= loadJson('enrolment.json')),
+      loadEnrolment,
       onSelect: select,
       onClose: () => store.set({ school: null }),
       extras: {
+        actions: (school) => compareButton(store, school),
         nearby(school) {
           if (!school.coordinates) return null;
           const button = document.createElement('button');
@@ -119,7 +126,8 @@ async function start() {
       },
     });
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && store.get().school) store.set({ school: null });
+      const dialogOpen = document.getElementById('compare-dialog').open;
+      if (event.key === 'Escape' && !dialogOpen && store.get().school) store.set({ school: null });
     });
 
     function showDetail(state, previous) {
@@ -170,6 +178,7 @@ async function start() {
         }
       }
       if (selectionChanged || changed.has('colour')) renderLegend(mode, visible);
+      if (changed.has('initial') || changed.has('compare')) syncCompare(state);
       if (changed.has('school') || (changed.has('initial') && state.school)) {
         showDetail(state, previousSchool);
         previousSchool = state.school;
