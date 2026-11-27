@@ -154,27 +154,21 @@ def to_points(df: pd.DataFrame) -> gpd.GeoDataFrame:
 
 def write_points(gdf: gpd.GeoDataFrame, stem: str, directory: Path) -> list[Path]:
     directory.mkdir(parents=True, exist_ok=True)
-    paths = [
-        directory / f"{stem}.parquet",
-        directory / f"{stem}.geojson",
-        directory / f"{stem}.csv",
-    ]
+    paths = [directory / f"{stem}.parquet", directory / f"{stem}.geojson"]
     columns = [c for c in gdf.columns if c != "geometry"] + ["geometry"]
     gdf = gpd.GeoDataFrame(
         gdf[columns].sort_values("roll_number").reset_index(drop=True)
     )
     gdf.to_parquet(paths[0], index=False)
     gdf.to_file(paths[1], driver="GeoJSON", write_bbox="NO", coordinate_precision=6)
-    gdf.drop(columns="geometry").to_csv(paths[2], index=False)
     return paths
 
 
 def write_panel(panel: pd.DataFrame, stem: str, directory: Path) -> list[Path]:
     directory.mkdir(parents=True, exist_ok=True)
-    paths = [directory / f"{stem}.parquet", directory / f"{stem}.csv"]
-    panel.to_parquet(paths[0], index=False)
-    panel.to_csv(paths[1], index=False)
-    return paths
+    path = directory / f"{stem}.parquet"
+    panel.to_parquet(path, index=False)
+    return [path]
 
 
 def build_level(
