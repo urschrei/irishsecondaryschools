@@ -79,9 +79,23 @@
             <h2 id="results-heading" class="text-lg font-bold">Schools</h2>
             <p id="status" class="text-sm text-muted" role="status">Loading schools</p>
           </div>
-          <div class="px-5 pt-2">
-            <button id="export-geojson" type="button" class="button">
-              Download these schools as GeoJSON
+          <div id="export" class="flex flex-wrap items-center gap-2 px-5 pt-2">
+            <p id="export-label" class="w-full text-sm text-muted">Download these schools</p>
+            <button
+              id="export-geojson"
+              type="button"
+              class="button"
+              aria-describedby="export-label"
+            >
+              GeoJSON
+            </button>
+            <button
+              id="export-geoparquet"
+              type="button"
+              class="button"
+              aria-describedby="export-label"
+            >
+              GeoParquet
             </button>
           </div>
           <ol id="result-list" class="mt-3 divide-y divide-rule border-y border-rule"></ol>

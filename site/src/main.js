@@ -1,6 +1,6 @@
 import { compareButton, setUpCompare } from './compare.js';
 import { fetchJson, loadJson, loadSchools } from './data.js';
-import { downloadJson, schoolsGeoJSON } from './export.js';
+import { downloadFile, schoolsGeoJSON } from './export.js';
 import { createDetail } from './detail.js';
 import { DEFAULT_FILTERS, activeFilterCount, matches } from './filters.js';
 import { setUpFilters } from './filters-ui.js';
@@ -177,10 +177,16 @@ async function start() {
         areasStatus.textContent = `The areas did not load. ${error.message}`;
       }
     }
-    const exportButton = document.getElementById('export-geojson');
-    exportButton.addEventListener('click', () => {
-      downloadJson(schoolsGeoJSON(visible), 'irish_schools_selection.geojson');
+    document.getElementById('export-geojson').addEventListener('click', () => {
+      const geojson = JSON.stringify(schoolsGeoJSON(visible));
+      downloadFile(geojson, 'irish_schools_selection.geojson', 'application/geo+json');
     });
+    document.getElementById('export-geoparquet').addEventListener('click', async () => {
+      // The Parquet writer loads only when it is needed.
+      const { schoolsGeoParquet } = await import('./parquet.js');
+      downloadFile(schoolsGeoParquet(visible), 'irish_schools_selection.parquet', 'application/vnd.apache.parquet');
+    });
+
     function update(state, changed) {
       const nearChanged = changed.has('near') || changed.has('radius');
       const selectionChanged =
@@ -203,11 +209,11 @@ async function start() {
           isNarrowed: Boolean(selected.found || state.near || activeFilterCount(state) > 0),
         });
         syncNear(state, visible.length);
-        exportButton.hidden = visible.length === 0;
-        exportButton.textContent =
+        document.getElementById('export').hidden = visible.length === 0;
+        document.getElementById('export-label').textContent =
           visible.length === schools.length
-            ? 'Download all schools as GeoJSON'
-            : `Download these ${number.format(visible.length)} schools as GeoJSON`;
+            ? `Download all ${number.format(visible.length)} schools`
+            : `Download these ${number.format(visible.length)} schools`;
         status.textContent =
           visible.length === schools.length
             ? `${number.format(schools.length)} schools`
