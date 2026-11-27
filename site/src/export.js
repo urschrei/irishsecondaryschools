@@ -1,5 +1,6 @@
-// Fields that the viewer adds to each school. They are not in the data.
-const VIEWER_FIELDS = new Set(['coordinates', 'category']);
+// Fields that the viewer adds to each school for display. They are not
+// in the exported files.
+const VIEWER_FIELDS = new Set(['coordinates', 'category', 'phone_display']);
 
 // Return the schools as a GeoJSON feature collection with the fields of
 // the published data.
@@ -14,8 +15,8 @@ export function schoolsGeoJSON(schools) {
   };
 }
 
-export function downloadJson(data, filename) {
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/geo+json' });
+export function downloadFile(contents, filename, type) {
+  const blob = new Blob([contents], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
