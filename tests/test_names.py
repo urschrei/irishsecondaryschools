@@ -1,6 +1,14 @@
+import pandas as pd
 import pytest
 
-from irish_schools.names import normalise_name
+from irish_schools.build import LEVELS, OUTPUT_DIR
+from irish_schools.names import (
+    bare,
+    load_spellings,
+    normalise_name,
+    query_name,
+    respell,
+)
 
 
 @pytest.mark.parametrize(
@@ -80,3 +88,76 @@ def test_normalise_name_de(raw, expected):
 )
 def test_normalise_name_keeps_mixed_case(name):
     assert normalise_name(name) == name
+
+
+WORDS = {"padraig": "Pádraig", "marys": "Mary's", "mbraithre": "mBráithre"}
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("S N Naomh Padraig", "S N Naomh Pádraig"),
+        ("St Marys NS", "St Mary's NS"),
+        ("St Mary's NS", "St Mary's NS"),
+        ("Scoil na mBraithre", "Scoil na mBráithre"),
+        ("Scoil Naomh Pádraíg", "Scoil Naomh Pádraig"),
+        ("SCOIL PADRAIG", "SCOIL PÁDRAIG"),
+        ("St Marysn.S", "St Marysn.S"),
+    ],
+)
+def test_respell(name, expected):
+    assert respell(name, WORDS) == expected
+
+
+QUERIES = {"rath": "Ráth", "o": "Ó"}
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("S N Rath Mor", "Rath or Ráth"),
+        ("S N Ráth Mór", None),
+        ("S N O Dubhlain Rath Rath", "O or Ó; Rath or Ráth"),
+        ("Kill-O'-the-Grange NS", None),
+        ("O'Carolan College", None),
+        ("Rathcoffey N S", None),
+    ],
+)
+def test_query_name(name, expected):
+    assert query_name(name, QUERIES) == expected
+
+
+def test_load_spellings_rejects_marked_key(tmp_path):
+    path = tmp_path / "spellings.toml"
+    path.write_text('[words]\n"pádraig" = "Pádraig"\n')
+    with pytest.raises(ValueError, match="bare word"):
+        load_spellings(path)
+
+
+def test_load_spellings_rejects_word_in_both_tables(tmp_path):
+    path = tmp_path / "spellings.toml"
+    path.write_text('[words]\nrath = "Ráth"\n[queries]\nrath = "Ráth"\n')
+    with pytest.raises(ValueError, match="\\[words\\] and \\[queries\\]"):
+        load_spellings(path)
+
+
+def test_load_spellings_rejects_bad_roll_number(tmp_path):
+    path = tmp_path / "spellings.toml"
+    path.write_text('[schools]\n"1234A" = "Scoil"\n')
+    with pytest.raises(ValueError, match="roll number"):
+        load_spellings(path)
+
+
+def test_spellings_table_is_valid():
+    spellings = load_spellings()
+    for key, spelling in {**spellings.words, **spellings.queries}.items():
+        assert bare(spelling) == key, key
+
+
+def test_school_names_are_current_schools():
+    spellings = load_spellings()
+    paths = [OUTPUT_DIR / f"{level.stem}_schools.parquet" for level in LEVELS]
+    if not all(path.exists() for path in paths):
+        pytest.skip("run `schools build`")
+    rolls = set().union(*(set(pd.read_parquet(p)["roll_number"]) for p in paths))
+    assert set(spellings.schools) <= rolls

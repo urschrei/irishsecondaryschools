@@ -1,14 +1,26 @@
-"""Give school names in capital letters a standard capitalisation.
+"""Give school names a standard capitalisation and spelling.
 
 Most primary school names in the Department lists are in capital
-letters. Other names are in mixed case. This module converts names in
-capital letters to the style of the mixed-case names, for example
+letters. Other names are in mixed case. normalise_name converts names
+in capital letters to the style of the mixed-case names, for example
 "S N NA NGAEL" to "S N na nGael". Names that contain a lower-case
-letter do not change. The module changes only capitalisation: it does
-not add missing apostrophes or accents.
+letter do not change.
+
+Many names do not have accents and apostrophes. respell replaces words
+with the spellings in spellings.toml, for example "Padraig" with
+"Pádraig". query_name finds words that are possibly spelled
+incorrectly but that have more than one possible correct spelling.
 """
 
 import re
+import tomllib
+import unicodedata
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from irish_schools.sources import ROOT
+
+SPELLINGS = ROOT / "spellings.toml"
 
 _VOWELS = set("AEIOUYÁÉÍÓÚ")
 
@@ -139,3 +151,85 @@ def normalise_name(name: str) -> str:
         previous = word
     parts.append(name[end:])
     return "".join(parts)
+
+
+# A word with its apostrophes, for example "Mary's" or "O'Toole". A word
+# followed by an apostrophe, such as the "O" in "Kill-O'-the-Grange",
+# does not match.
+_SPELLED_WORD = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)*(?![\w'’])")
+
+
+def bare(word: str) -> str:
+    """Return a word in lower case without accents or apostrophes."""
+    decomposed = unicodedata.normalize("NFD", word)
+    letters = "".join(c for c in decomposed if not unicodedata.combining(c))
+    return re.sub(r"['’]", "", letters).lower()
+
+
+@dataclass(frozen=True)
+class Spellings:
+    """The tables in spellings.toml.
+
+    words maps a bare word to its correct spelling. queries maps a bare
+    word to an alternative spelling. schools maps a roll number to the
+    correct name of that school.
+    """
+
+    words: dict[str, str] = field(default_factory=dict)
+    queries: dict[str, str] = field(default_factory=dict)
+    schools: dict[str, str] = field(default_factory=dict)
+
+
+def load_spellings(path: Path = SPELLINGS) -> Spellings:
+    with path.open("rb") as f:
+        data = tomllib.load(f)
+    spellings = Spellings(
+        words=data.get("words", {}),
+        queries=data.get("queries", {}),
+        schools=data.get("schools", {}),
+    )
+    for table in ("words", "queries"):
+        for key in getattr(spellings, table):
+            if key != bare(key):
+                raise ValueError(f"{path}: [{table}] key {key!r} is not a bare word")
+    both = spellings.words.keys() & spellings.queries.keys()
+    if both:
+        raise ValueError(f"{path}: words in [words] and [queries]: {sorted(both)}")
+    for roll in spellings.schools:
+        if not re.fullmatch(r"\d{5}[A-Z]", roll):
+            raise ValueError(f"{path}: [schools] key {roll!r} is not a roll number")
+    return spellings
+
+
+def respell(name: str, words: dict[str, str]) -> str:
+    """Replace each word in a name that has an entry in words.
+
+    A word in capital letters gets the replacement in capital letters.
+    """
+
+    def replace(match: re.Match[str]) -> str:
+        word = match.group()
+        spelling = words.get(bare(word))
+        if spelling is None:
+            return word
+        if len(word) > 1 and word == word.upper():
+            return spelling.upper()
+        return spelling
+
+    return _SPELLED_WORD.sub(replace, name)
+
+
+def query_name(name: str, queries: dict[str, str]) -> str | None:
+    """Return the words in a name that have an entry in queries.
+
+    The result has the form "Rath or Ráth; Dun or Dún", or is None if
+    the name has no such word.
+    """
+    found = []
+    for word in _SPELLED_WORD.findall(name):
+        alternative = queries.get(bare(word))
+        if alternative is not None and alternative != word:
+            query = f"{word} or {alternative}"
+            if query not in found:
+                found.append(query)
+    return "; ".join(found) or None

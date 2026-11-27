@@ -32,7 +32,7 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 | --- | --- | --- |
 | `roll_number` | Both | Department roll number, for example `60010P`. |
 | `academic_year` | Both | First calendar year of the school year. `2025` is 2025/26. |
-| `name` | Both | Official school name. Names that the Department gives in capital letters are converted to mixed case, for example `S N NA NGAEL` to `S N na nGael`. |
+| `name` | Both | School name. The Department name with a standard capitalisation and spelling: see [School names](#school-names). |
 | `address_1` to `address_4` | Both | Postal address. |
 | `eircode` | Both | Eircode. |
 | `phone` | Both | School telephone number in E.164 form, for example `+35318411594`. Where a school has more than one number, they are separated by `;`. |
@@ -56,6 +56,7 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 
 | Column | Description |
 | --- | --- |
+| `name_query` | Words in `name` that are possibly spelled incorrectly, with an alternative spelling, for example `Rath or Ráth`. Empty if there are none. |
 | `total_5y_earlier` | `total` five school years earlier. Empty if the school was not listed then. |
 | `change_5y_pct` | Percentage change from `total_5y_earlier` to `total`. |
 | `small_area` | 2022 CSO Small Area that contains the school. |
@@ -67,6 +68,18 @@ The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pag
 | `nearest_school` | `roll_number` of the nearest other school at the same level. For primary schools, only mainstream schools count. |
 | `nearest_school_km` | Great-circle distance to that school, in kilometres. |
 | `schools_within_5km` | Number of other schools at the same level within a great-circle distance of 5 km. For primary schools, only mainstream schools count. |
+
+## School names
+
+The build changes the Department names in two ways:
+
+1. It converts names in capital letters to mixed case, for example `S N NA NGAEL` to `S N na nGael`. Names that the Department gives in mixed case keep their capitalisation.
+2. It applies the tables in `spellings.toml`:
+   - `[words]` gives the correct spelling of words that the Department lists often give without accents or apostrophes, for example `Padraig` to `Pádraig` and `Marys` to `Mary's`.
+   - `[queries]` lists words that are possibly spelled incorrectly but that have more than one possible correct spelling, for example `Rath`, which can be `Ráth`. The build does not change these words. It records them in `name_query`.
+   - `[schools]` gives the correct name of a single school, by roll number. It replaces the name in each year that the school has its current name. A school in this table has an empty `name_query`.
+
+To correct a name in `name_query`, add the school to `[schools]` and run `schools build`.
 
 ## Columns in the enrolment files
 

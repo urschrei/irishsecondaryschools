@@ -7,7 +7,8 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-from irish_schools import areas, dept, enrich, phone
+from irish_schools import areas, dept, enrich, names, phone
+from irish_schools.names import Spellings
 from irish_schools.sources import ROOT, Source, load_manifest, source_by_kind
 
 OUTPUT_DIR = ROOT / "data"
@@ -20,6 +21,7 @@ POINT_COLUMNS = [
     "roll_number",
     "academic_year",
     "name",
+    "name_query",
     "address_1",
     "address_2",
     "address_3",
@@ -109,6 +111,45 @@ def read_year(level: Level, source: Source) -> pd.DataFrame:
     return df
 
 
+def apply_spellings(
+    frames: list[pd.DataFrame], spellings: Spellings
+) -> list[pd.DataFrame]:
+    """Correct the spelling of school names in each year.
+
+    A name in spellings.schools replaces the name of that school in each
+    year that the school has its name in the last year. The last frame
+    gets the column name_query.
+    """
+    out = []
+    for df in frames:
+        df = df.copy()
+        df["name"] = df["name"].map(
+            lambda name: names.respell(name, spellings.words), na_action="ignore"
+        )
+        out.append(df)
+
+    current = out[-1].set_index("roll_number")["name"]
+    for roll, name in spellings.schools.items():
+        if roll not in current.index:
+            continue
+        for df in out:
+            same = (df["roll_number"] == roll) & (df["name"] == current[roll])
+            df.loc[same, "name"] = name
+
+    last = out[-1]
+    last["name_query"] = pd.Series(
+        [
+            None
+            if roll in spellings.schools
+            else names.query_name(name, spellings.queries)
+            for roll, name in zip(last["roll_number"], last["name"], strict=True)
+        ],
+        index=last.index,
+        dtype="string",
+    )
+    return out
+
+
 def school_year(academic_year: int) -> str:
     return f"{academic_year}/{(academic_year + 1) % 100:02d}"
 
@@ -180,10 +221,11 @@ def build_level(
     level: Level,
     small_areas: gpd.GeoDataFrame,
     deprivation: pd.DataFrame,
+    spellings: Spellings,
     directory: Path,
 ) -> list[Path]:
     sources = level.sources()
-    frames = [read_year(level, s) for s in sources]
+    frames = apply_spellings([read_year(level, s) for s in sources], spellings)
     panel = build_panel(level, frames)
 
     points = to_points(frames[-1])
@@ -205,9 +247,10 @@ def build_level(
 def build_all(directory: Path = OUTPUT_DIR) -> list[Path]:
     small_areas = enrich.read_small_areas(source_by_kind("small_areas").path())
     deprivation = enrich.read_deprivation(source_by_kind("deprivation").path())
+    spellings = names.load_spellings()
     paths = []
     for level in LEVELS:
         if level.sources():
-            paths += build_level(level, small_areas, deprivation, directory)
+            paths += build_level(level, small_areas, deprivation, spellings, directory)
     paths.append(areas.write_deprivation_layer(small_areas, deprivation))
     return paths
