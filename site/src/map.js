@@ -1,4 +1,10 @@
-import { Map as MapLibreMap, NavigationControl, ScaleControl, setWorkerUrl } from 'maplibre-gl';
+import {
+  LngLatBounds,
+  Map as MapLibreMap,
+  NavigationControl,
+  ScaleControl,
+  setWorkerUrl,
+} from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 
 // Vite moves the bundled modules, so give MapLibre the worker location.
@@ -70,4 +76,17 @@ export function addSchools(map, collection, colour, radius) {
 export function setSchoolStyle(map, colour, radius) {
   map.setPaintProperty(SCHOOLS_LAYER, 'circle-color', colour);
   map.setPaintProperty(SCHOOLS_LAYER, 'circle-radius', radius);
+}
+
+// Show only the given schools, or all schools if rolls is null.
+export function showSchools(map, rolls) {
+  map.setFilter(SCHOOLS_LAYER, rolls ? ['in', ['get', 'roll_number'], ['literal', rolls]] : null);
+}
+
+export function fitSchools(map, schools) {
+  const located = schools.filter((school) => school.coordinates);
+  if (!located.length) return;
+  const bounds = new LngLatBounds(located[0].coordinates, located[0].coordinates);
+  for (const school of located) bounds.extend(school.coordinates);
+  map.fitBounds(bounds, { padding: 48, maxZoom: 14 });
 }

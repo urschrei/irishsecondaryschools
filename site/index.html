@@ -35,7 +35,36 @@
             >
           </p>
         </header>
-        <p id="status" class="px-5 py-3 text-sm" role="status">Loading schools</p>
+        <section class="border-b border-rule px-5 py-4">
+          <form role="search" id="search-form">
+            <label for="search" class="block font-bold">Find a school</label>
+            <p id="search-hint" class="text-sm text-muted">
+              Name, address, roll number, Eircode, or Eircode area such as D07
+            </p>
+            <input
+              id="search"
+              type="search"
+              autocomplete="off"
+              aria-describedby="search-hint"
+              class="mt-2 w-full rounded border border-rule bg-white px-3 py-2"
+            />
+          </form>
+        </section>
+        <section id="results" aria-labelledby="results-heading">
+          <div class="flex items-baseline justify-between gap-3 px-5 pt-4">
+            <h2 id="results-heading" class="text-lg font-bold">Schools</h2>
+            <p id="status" class="text-sm text-muted" role="status">Loading schools</p>
+          </div>
+          <ol id="result-list" class="mt-2 divide-y divide-rule border-y border-rule"></ol>
+          <div class="px-5 py-4">
+            <button
+              id="show-more"
+              type="button"
+              class="rounded border border-sign px-3 py-1.5 text-sign hover:bg-white"
+              hidden
+            ></button>
+          </div>
+        </section>
       </main>
       <div class="relative order-1 md:order-2">
         <div id="map" class="h-full w-full" role="region" aria-label="Map of schools"></div>
