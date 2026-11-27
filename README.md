@@ -18,6 +18,12 @@ The current data is for the 2025/26 school year: 3,216 primary schools, of which
 
 `roll_number` is the Department's unique identifier for a school, which can be used to join the files to each other and to other Department datasets.
 
+## Map viewer
+
+The `site/` directory holds a map of the schools. It searches by name, address, roll number or Eircode, filters by the attributes of a school, lists the schools near a place, and compares up to four schools. For each school it shows enrolment since 2011/12, distances to other schools, and the deprivation score of the area. It can download the schools that match a search or filters as GeoJSON.
+
+The workflow in `.github/workflows/pages.yml` publishes the viewer to GitHub Pages when `main` changes. The base map is from OpenFreeMap, with data from OpenStreetMap contributors.
+
 ## Columns in the school files
 
 ### From the Department of Education lists
@@ -126,6 +132,28 @@ Prerequisites: [uv](https://docs.astral.sh/uv/).
    ```
 
 To add a new school year, add a `[[source]]` entry to `sources.toml` with the file URL, the `kind` (`primary_list` or `post_primary_list`), the `academic_year` and the SHA-256 checksum. Then run the steps above. The Department changes column names from year to year. If the build fails on a new header, add it to `HEADER_MAP` in `src/irish_schools/dept.py`.
+
+## Building the viewer
+
+Prerequisites: [uv](https://docs.astral.sh/uv/) and Node.js 24.
+
+1. Build the files in `data/`, as above. `schools build` also writes the Electoral Division layer to `site/public/areas/`. Commit this file with the data: the publishing workflow does not download the source files.
+
+2. Write the viewer data, and copies of the files in `data/` for download, to `site/public/`:
+
+   ```sh
+   uv run schools web
+   ```
+
+3. Install the packages and start a development server:
+
+   ```sh
+   cd site
+   npm ci
+   npm run dev
+   ```
+
+4. Before you commit a change to the viewer, run `npm run lint`, `npm test` and `npm run build` in `site/`.
 
 ## Reporting an error
 
